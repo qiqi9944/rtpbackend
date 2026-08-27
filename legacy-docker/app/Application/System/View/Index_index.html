@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+    <head>
+        <meta charset="UTF-8">
+        <title>{:C('SITENAME')}</title>
+        <meta name="renderer" content="webkit|ie-comp|ie-stand">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+        <meta http-equiv="Cache-Control" content="no-siteapp" />
+        <link rel="stylesheet" href="/Public/css/font.css?<?php echo rand(); ?>">
+        <link rel="stylesheet" href="/Public/css/index.css?<?php echo rand(); ?>">
+        <link rel="stylesheet" href="/Public/css/iconfont.css?<?php echo rand(); ?>">
+        <script src="/Public/lib/layui/layui.js?<?php echo rand(); ?>" charset="utf-8"></script>
+        <script type="text/javascript" src="/Public/js/index.js?<?php echo rand(); ?>"></script>
+        <script type="text/javascript" src="/Public/js/base.js?<?php echo rand(); ?>"></script>
+    </head>
+    <body class="index">
+        <!-- 顶部开始 -->
+        <div class="container">
+            <div class="logo">
+                <a href="{:U('Index/index')}">{:C('SITENAME')}</a></div>
+            <div class="left_open">
+                <a><i title="展开左侧栏" class="iconfont">&#xe699;</i></a>
+            </div>
+
+            <ul class="layui-nav right" lay-filter="">
+                <li class="layui-nav-item">
+                    <a href="javascript:;">{$hdadmin['username']}</a>
+                    <dl class="layui-nav-child">
+                        <!-- 二级菜单 -->
+                        <dd>
+                            <a onClick="xadmin.open('个人信息','{:U('Index/myinfo')}','700','550')">个人信息</a></dd>
+                        <dd>
+                            <a href="{:U('Login/logout')}" onClick="return surelogout();">退出</a></dd>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+        <!-- 顶部结束 -->
+        <!-- 中部开始 -->
+        <!-- 左侧菜单开始 -->
+        <div class="left-nav">
+            <div id="side-nav">
+                <ul id="nav">
+                    <li>
+                        <a href="javascript:;" onClick="xadmin.add_tab('首页','{:U('Index/welcome')}')">
+                            <i class="layui-icon left-nav-li" lay-tips="首页" style="font-size:14px;">&#xe68e;</i>
+                            <cite>首页</cite>
+                            <i class="iconfont nav_right">&#xe6a7;</i></a>
+                    
+                    </li>
+                    <?php if(in_array('1',$hdadmin['lanmu'])){ ?>
+                    <li>
+                        <a href="javascript:;" onClick="xadmin.add_tab('数据管理','{:U('Datas/index')}')">
+                            <i class="iconfont left-nav-li" lay-tips="数据管理">&#59223;</i>
+                            <cite>数据管理</cite>
+                            <i class="iconfont nav_right">&#xe6a7;</i></a>
+                    </li>
+                    <li>
+                        <a href="javascript:;" onClick="xadmin.add_tab('市场数据维护','{:U('Datamain/index')}')">
+                            <i class="iconfont left-nav-li" lay-tips="市场数据维护">&#xe6b0;</i>
+                            <cite>市场数据维护</cite>
+                            <i class="iconfont nav_right">&#xe6a7;</i></a>
+                    </li>
+                    <?php } ?>
+                    <?php if(in_array('2',$hdadmin['lanmu'])){ ?>
+                    <li>
+                        <a href="javascript:;" onClick="xadmin.add_tab('新闻管理','{:U('News/index')}')">
+                            <i class="iconfont left-nav-li" lay-tips="新闻管理">&#xe6a2;</i>
+                            <cite>新闻管理</cite>
+                            <i class="iconfont nav_right">&#xe6a7;</i></a>
+                    </li>
+                    <?php } ?>
+                    <?php if(in_array('3',$hdadmin['lanmu'])){ ?>
+                    <li>
+                        <a href="javascript:;" onClick="xadmin.add_tab('用户管理','{:U('User/user')}')">
+                            <i class="iconfont left-nav-li" lay-tips="用户管理">&#xe726;</i>
+                            <cite>用户管理</cite>
+                            <i class="iconfont nav_right">&#xe6a7;</i></a>
+                    </li>
+                    <?php } ?>
+                    <?php if(in_array('4',$hdadmin['lanmu'])){ ?>
+                    <li>
+                        <a href="javascript:;" onClick="xadmin.add_tab('后台账号','{:U('User/admin')}')">
+                            <i class="iconfont left-nav-li" lay-tips="后台账号">&#59064;</i>
+                            <cite>后台账号</cite>
+                            <i class="iconfont nav_right">&#xe6a7;</i></a>
+                    </li>
+                    <?php } ?>
+                    <?php if(in_array('7',$hdadmin['lanmu'])){ ?>
+                    <li>
+                        <a href="javascript:;" onClick="xadmin.add_tab('Banner管理','{:U('Setting/banner')}')">
+                            <i class="iconfont left-nav-li" lay-tips="Banner管理">&#59048;</i>
+                            <cite>Banner管理</cite>
+                            <i class="iconfont nav_right">&#xe6a7;</i></a>
+                    </li>
+                    <li>
+                        <a href="javascript:;" onClick="xadmin.add_tab('首页菜单管理','{:U('Indexmenu/index')}')">
+                            <i class="iconfont left-nav-li" lay-tips="首页菜单管理">&#xe654;</i>
+                            <cite>首页菜单管理</cite>
+                            <i class="iconfont nav_right">&#xe6a7;</i></a>
+                    </li>
+                    <?php } ?>
+                    <?php if(in_array('5',$hdadmin['lanmu'])){ ?>
+                    <li>
+                        <a href="javascript:;" onClick="xadmin.add_tab('操作记录','{:U('Setting/history')}')">
+                            <i class="iconfont left-nav-li" lay-tips="操作记录">&#59123;</i>
+                            <cite>操作记录</cite>
+                            <i class="iconfont nav_right">&#xe6a7;</i></a>
+                    </li>
+                    <?php } ?>
+                    <?php if(in_array('6',$hdadmin['lanmu'])){ ?>
+                    <li>
+                        <a href="javascript:;" onClick="xadmin.add_tab('系统设置','{:U('Setting/index')}')">
+                            <i class="iconfont left-nav-li" lay-tips="系统设置">&#xe60d;</i>
+                            <cite>系统设置</cite>
+                            <i class="iconfont nav_right">&#xe6a7;</i></a>
+                    </li>
+                    <?php } ?>
+                </ul>
+            </div>
+        </div>
+        <!-- <div class="x-slide_left"></div> -->
+        <!-- 左侧菜单结束 -->
+        <!-- 右侧主体开始 -->
+        <div class="page-content">
+            <div class="layui-tab tab" lay-filter="xbs_tab" lay-allowclose="false">
+                <ul class="layui-tab-title">
+                    <li class="home"><i class="layui-icon" style="font-size:14px;">&#xe68e;</i>首页</li>
+                </ul>
+                <div class="layui-unselect layui-form-select layui-form-selected" id="tab_right">
+                    <dl>
+                        <dd data-type="this">关闭当前</dd>
+                        <dd data-type="other">关闭其它</dd>
+                        <dd data-type="all">关闭全部</dd></dl>
+                </div>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <iframe src="{:U('Index/welcome')}" frameborder="0" scrolling="yes" class="x-iframe"></iframe>                       
+                    </div>
+                </div>
+                <div id="tab_show"></div>
+            </div>
+        </div>
+        <div class="page-content-bg"></div>
+        <style id="theme_style"></style>
+        <!-- 右侧主体结束 -->
+        <!-- 中部结束 -->
+
+    </body>
+    
+	<script src="/Public/js/jquery.min.js?<?php echo rand(); ?>"></script>
+</html>
+
+<?php if(1==2){ ?>
+<script>
+    window.onload=function () {
+        var click=document.getElementById('new-nav');
+        var news=document.getElementById('news');
+        click.addEventListener('mousemove',function () {
+            news.style.display='block';
+        });
+        click.addEventListener('mouseout',function () {
+            news.style.display='none';
+        });
+
+        var gonggao=document.getElementById('gonggao');
+        var gonggaos=document.getElementById('gonggaos');
+        gonggao.addEventListener('mousemove',function () {
+            gonggaos.style.display='block';
+        });
+        gonggao.addEventListener('mouseout',function () {
+            gonggaos.style.display='none';
+        });
+    }
+</script>
+<?php } ?>
+

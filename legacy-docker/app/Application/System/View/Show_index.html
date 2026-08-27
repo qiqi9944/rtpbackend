@@ -1,0 +1,167 @@
+<!doctype html>
+<html>
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+ <meta name="Generator" content="EditPlus®">
+ <meta name="Author" content="">
+ <meta name="Keywords" content="">
+ <meta name="Description" content="">
+ <title>{$data['name']}</title>
+ <link rel="stylesheet" type="text/css" href="/Public/css/show.css?<?php echo rand(); ?>">
+</head>
+<body>
+	<div class="bg">
+       <div style="height:10px;"></div>
+       <div class="top"></div>
+       <div class="middle">
+           <div class="title">商品信息</div>
+           <div class="content">
+                <?php if($data['lb']==1){ ?>
+                <table>
+                     <tr>
+                         <td class="left" width="120">商品编号</td>
+                         <td class="right">{$data['bh']}</td>
+                         <td width="30"></td>
+                     </tr>
+                     <tr>
+                         <td class="left">产品名称</td>
+                         <td class="right">{$data['name']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">制作匠人</td>
+                         <td class="right">{$data['jrname']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">类　　型</td>
+                         <td class="right">{$arr_cyfl[$data['cyfl']]} - {$arr_cyfl2[$data['cyfl']][$data['cyfl2']]}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">生产日期</td>
+                         <td class="right"><?php if($data['cyscrq']){ ?><?php echo date('Y-m-d',$data['cyscrq']); ?><?php } ?></td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">包装日期</td>
+                         <td class="right"><?php if($data['bzrq']){ ?><?php echo date('Y-m-d',$data['bzrq']); ?><?php } ?></td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">产地简介</td>
+                         <td class="right">{$data['cycd']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">执行标准</td>
+                         <td class="right">{$data['cyzxbz']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">生产许可证号</td>
+                         <td class="right">{$data['cyscxkz']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">出&nbsp;&nbsp;品&nbsp;&nbsp;商</td>
+                         <td class="right">{$data['cycps']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">出品商地址</td>
+                         <td class="right">{$data['cycpsdz']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">生&nbsp;&nbsp;产&nbsp;&nbsp;商</td>
+                         <td class="right">{$data['cysccs']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">生产商地址</td>
+                         <td class="right">{$data['cyscsdz']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">批　　次</td>
+                         <td class="right">{$data['cypc']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">批　　量</td>
+                         <td class="right">{$data['cypl']}</td>
+                         <td></td>
+                     </tr>
+                </table>
+                <?php } ?>
+                <?php if($data['lb']==3){ ?>
+                <table>
+                     <tr>
+                         <td class="left">产品名称</td>
+                         <td class="right">{$data['name']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left" width="120">产品编号</td>
+                         <td class="right">{$data['cpbh']}</td>
+                         <td width="30"></td>
+                     </tr>
+                     <tr>
+                         <td class="left">品牌</td>
+                         <td class="right">{$data['pipai']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">材质</td>
+                         <td class="right">{$data['caizhi']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">窑口工艺</td>
+                         <td class="right">{$data['ykgy']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">烧成日期</td>
+                         <td class="right"><?php if($data['sctime']){ ?><?php echo date('Y-m-d',$data['sctime']); ?><?php } ?></td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <td class="left">所属窑位</td>
+                         <td class="right">{$data['ssyw']}</td>
+                         <td></td>
+                     </tr>
+                     <tr>
+                         <!-- <td class="left">产品简介</td> -->
+                         <td class="right txtcon" colspan="2">{:htmlspecialchars_decode(stripslashes($data['content']))}</td>
+                         <td></td>
+                     </tr>
+                </table>
+                <?php } ?>
+                <?php if($data['lb']==1){ ?>
+                    <div class="img"><img src="/Public/images/show/img.jpg"></div>
+                    <div class="index clearfix">
+                        <img src="/Public/images/show/ewm1.jpg">
+                        <p class="p1">【静象客服】</p>
+                        <p class="p2">您的建议是我们宝贵的财富，静象客服竭诚为您服务。</p>
+                    </div>
+                    <div class="index clearfix">
+                        <img src="/Public/images/show/ewm2.jpg">
+                        <p class="p1">【静象商城】</p>
+                        <p class="p2">定制非遗雅物，享受雅致生活。</p>
+                    </div>
+                    <div class="index clearfix">
+                        <img src="/Public/images/show/ewm3.jpg">
+                        <p class="p1">【静象公众号】</p>
+                        <p class="p2">记录一群青年人的传统文化艺术探寻之旅。</p>
+                    </div>
+                <?php } ?>
+           </div>
+       </div>
+       <div class="bottom"></div>
+       <div style="height:10px;"></div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>静象非遗大数据可视化平台</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="/Public/tjcss/index.css?<?php echo rand(); ?>">
+	<link rel="stylesheet" type="text/css" href="/Public/tjcss/jqcloud.css" />
+	<script type="text/javascript" src="/Public/tjjs/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="/Public/tjjs/highcharts.js"></script>
+	<script type="text/javascript" src="/Public/tjjs/exporting.js"></script>
+	<script type="text/javascript" src="/Public/tjjs/highcharts-zh_CN.js"></script>
+	<script type="text/javascript" src="/Public/tjjs/oldie.js"></script>
+	<script type="text/javascript" src="/Public/tjjs/series-label.js"></script>
+	<script type="text/javascript" src="/Public/tjjs/funnel.js"></script>
+	<script type="text/javascript" src="/Public/tjjs/count.js"></script>
+	<script type="text/javascript" src="/Public/tjjs/jqcloud-1.0.4.js" charset="utf-8"></script>
+</head>
+<body>
+	<div class="bj clearfix">
+		<div class="header">
+			<div class="word l" id='time'></div>
+			<div class="word r">天津静象空间文化传播有限责任公司</div>
+		</div>
+		<div style="clear: both;"></div>
+		<div class="left">
+			<div class="box tongji">
+				<div class="jiao lt"></div>
+				<div class="jiao rt"></div>
+				<div class="jiao lb"></div>
+				<div class="jiao rb"></div>
+				<div class="content">
+					<div class="pic">
+						<div class="yhbor2">
+	                        <div id="box1" class="yhbfb2 xuanzhuan"></div>
+	                    </div>
+	                    <img src="/Public/tjimages/tj1.png">
+                    </div>
+					<div class="title">今日订单额</div>
+					<div class="num">{$jrdde}</div>
+				</div>
+			</div>
+			<div class="box tongji">
+				<div class="jiao lt"></div>
+				<div class="jiao rt"></div>
+				<div class="jiao lb"></div>
+				<div class="jiao rb"></div>
+				<div class="content">
+					<div class="pic">
+						<div class="yhbor4">
+	                        <div id="box2" class="yhbfb4 xuanzhuan"></div>
+	                    </div>
+	                    <img src="/Public/tjimages/tj2.png">
+                    </div>
+					<div class="title">今日下单人数</div>
+					<div class="num">{$jrxdrs}</div>
+				</div>
+			</div>
+			<div class="box tongji">
+				<div class="jiao lt"></div>
+				<div class="jiao rt"></div>
+				<div class="jiao lb"></div>
+				<div class="jiao rb"></div>
+				<div class="content">
+					<div class="pic">
+						<div class="yhbor5">
+	                        <div id="box3" class="yhbfb5 xuanzhuan"></div>
+	                    </div>
+	                    <img src="/Public/tjimages/tj3.png">
+                    </div>
+					<div class="title">今日订单量</div>
+					<div class="num">{$jrddl}</div>
+				</div>
+			</div>
+			<div class="box tongji">
+				<div class="jiao lt"></div>
+				<div class="jiao rt"></div>
+				<div class="jiao lb"></div>
+				<div class="jiao rb"></div>
+				<div class="content">
+					<div class="pic">
+						<div class="yhbor6">
+	                        <div id="box4" class="yhbfb6 xuanzhuan"></div>
+	                    </div>
+	                    <img src="/Public/tjimages/tj4.png">
+                    </div>
+					<div class="title">今日客单价</div>
+					<div class="num">{$jrkdj}</div>
+				</div>
+			</div>
+			<script type="text/javascript">
+				var object1 = document.getElementById('box1')
+
+			        function loadImg1(data) {
+			            var i = 0;
+			            setInterval(function() {
+			                i++
+			                if (i > data) {
+			                    i = data
+			                }
+			                var imgLeft = -(i * 44 + (i * 10)) + 'px'
+			                object1.style.backgroundPosition = imgLeft + '\t' + '0px';
+			            }, 0)
+			        }
+			    var object2 = document.getElementById('box2')
+
+			        function loadImg2(data) {
+			            var i = 0;
+			            setInterval(function() {
+			                i++
+			                if (i > data) {
+			                    i = data
+			                }
+			                var imgLeft = -(i * 44 + (i * 10)) + 'px'
+			                object2.style.backgroundPosition = imgLeft + '\t' + '0px';
+			            }, 0)
+			        }
+			    var object3 = document.getElementById('box3')
+
+			        function loadImg3(data) {
+			            var i = 0;
+			            setInterval(function() {
+			                i++
+			                if (i > data) {
+			                    i = data
+			                }
+			                var imgLeft = -(i * 44 + (i * 10)) + 'px'
+			                object3.style.backgroundPosition = imgLeft + '\t' + '0px';
+			            }, 0)
+			        }
+			    var object4 = document.getElementById('box4')
+
+			        function loadImg4(data) {
+			            var i = 0;
+			            setInterval(function() {
+			                i++
+			                if (i > data) {
+			                    i = data
+			                }
+			                var imgLeft = -(i * 44 + (i * 10)) + 'px'
+			                object4.style.backgroundPosition = imgLeft + '\t' + '0px';
+			            }, 0)
+			        }
+			    loadImg1(15);
+			    loadImg2(80);
+			    loadImg3(21);
+			    loadImg4(60);
+			</script>
+			<div style="clear: both;"></div>
+			<div class="box">
+				<div class="jiao lt"></div>
+				<div class="jiao rt"></div>
+				<div class="jiao lb"></div>
+				<div class="jiao rb"></div>
+				<div class="biaoti">订单情况列表</div>
+				<div id="table1" style="width: 100%;height: 320px;"></div>
+			</div>
+			<div class="box" style="padding-bottom: 40px;">
+				<div class="jiao lt"></div>
+				<div class="jiao rt"></div>
+				<div class="jiao lb"></div>
+				<div class="jiao rb"></div>
+				<div class="biaoti">商品销售情况</div>
+				<div class="xsqk" id="xsqk">
+					<table>
+						<thead>
+						<tr class="even">
+							<td class="title">商品名称</td>
+							<td>购买次数</td>
+							<td>购买人数</td>
+							<td>销售额</td>
+						</tr>
+						<thead>
+					</table>
+					<table class="tbody">
+						<tbody>
+                        <volist name="arr_splist" id="v">
+						<tr class="<?php if($key%2){ ?>odd<?php }else{ ?>even<?php } ?>">
+							<td class="title">
+								<a href="#">{$v['name']}</a>
+							</td>
+							<td>{$v['gmcs']}</td>
+							<td>{$v['gmrs']}</td>
+							<td class="num">{$v['xse']}</td>
+						</tr>
+                        </volist>
+						</tbody>
+					</table>
+				</div>
+				<script type="text/javascript">
+                    jQuery(function() {
+                        var scrtime;
+                        jQuery("#xsqk").hover(function() {
+                            clearInterval(scrtime);
+                        }, function() {
+                            scrtime = setInterval(function() {
+                                var lude = jQuery("#xsqk .tbody");
+                                var liHeight = lude.find("tr:last").height();
+                                lude.animate({
+                                    marginTop: liHeight
+                                }, 1000, function() {
+                                    lude.find("tr:last").prependTo(lude)
+                                    lude.find("tr:first").hide();
+                                    lude.css({
+                                        marginTop: 0
+                                    });
+                                    lude.find("tr:first").fadeIn(1000);
+                                });
+                            }, 3000);
+                        }).trigger("mouseleave");
+                    });
+                </script>
+			</div>
+		</div>
+		<div class="mid">
+			<div class="box">
+				<div class="jiao lt"></div>
+				<div class="jiao rt"></div>
+				<div class="jiao lb"></div>
+				<div class="jiao rb"></div>
+				<table class="tongji productNumber">
+					<tr>
+						<td>
+							<table class="tj">
+								<tr>
+									<td rowspan="2"><div class="pic"></div></td>
+									<td><p class="title">订单总额</p></td>
+								</tr>
+								<tr>
+									<td><p class="num"><font id="productNumber_1" data-sum="{$ddze}">0</font></p></td>
+								</tr>
+							</table>
+						</td>
+						<td>
+							<table class="tj">
+								<tr>
+									<td rowspan="2"><div class="pic"></div></td>
+									<td><p class="title">订单总量</p></td>
+								</tr>
+								<tr>
+									<td><p class="num"><font id="productNumber_2" data-sum="{$ddzl}">0</font></p></td>
+								</tr>
+							</table>
+						</td>
+						<td>
+							<table class="tj">
+								<tr>
+									<td rowspan="2"><div class="pic"></div></td>
+									<td><p class="title">下单总人数</p></td>
+								</tr>
+								<tr>
+									<td><p class="num"><font id="productNumber_3" data-sum="{$xdzrs}">0</font></p></td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+				<script type="text/javascript">
+					/*
+					参数
+					target = 目标元素的 ID；
+					startVal = 开始值；
+					endVal = 结束值；
+					decimals = 小数位数，默认值是0；
+					duration = 动画延迟秒数，默认值是2；
+					具体用法参考：http://inorganik.github.io/countUp.js/
+					*/
+				    productNumber = function() {
+				        var arr = [];
+				        $('.productNumber tr td').each(function(i, dom) {
+				            var iDom = $(dom).find('font'),
+				                decimals = 0,
+				                sum = iDom.data('sum');
+				            //初始化传参，参数为上面注释中的参数    
+				            arr.push(new CountUp(iDom.attr('id'), 0, sum, decimals, 4, {
+				                useEasing: true, //效果
+				                separator: '' //数字分隔符
+				            }));
+				            arr[i].start();
+				        });
+				    }();
+				</script>
+			</div>
+			<div class="box">
+				<div class="jiao lt"></div>
+				<div class="jiao rt"></div>
+				<div class="jiao lb"></div>
+				<div class="jiao rb"></div>
+				<div class="biaoti">供应链分布</div>
+				<div class="map"></div>
+			</div>
+			<div class="box">
+				<div class="jiao lt"></div>
+				<div class="jiao rt"></div>
+				<div class="jiao lb"></div>
+				<div class="jiao rb"></div>
+				<div class="biaoti">
+					近30日订单量变化
+					<!--<select class="sel">
+						<option>近30日商品销售量排行榜</option>
+						<option>近30日商品销售量排行榜</option>
+					</select>-->
+				</div>
+				<div id="table2" style="width: 100%;height: 290px;"></div>
+			</div>
+		</div>
+		<div class="right">
+			<div class="box">
+				<div class="jiao lt"></div>
+				<div class="jiao rt"></div>
+				<div class="jiao lb"></div>
+				<div class="jiao rb"></div>
+				<div class="biaoti">用户分析</div>
+				<div id="table3" style="width: 100%;height: 280px;"></div>
+			</div>
+			<div class="box">
+				<div class="jiao lt"></div>
+				<div class="jiao rt"></div>
+				<div class="jiao lb"></div>
+				<div class="jiao rb"></div>
+				<div class="biaoti">匠人销量排行榜</div>
+				<div class="jindulist">
+					<table>
+                        <volist name="arr_jrlist" id="v">
+                        <?php if($key==0){ ?><?php $znum=$v['num']; ?><?php } ?>
+						<tr>
+							<td class="title" width="100">{$v['name']}</td>
+							<td class="jd" width="270">
+								<div>
+									<span style="width: <?php echo ($v['num']/$znum)*100; ?>%;"></span>
+								</div>
+							</td>
+							<td class="num">{$v['num']}</td>
+						</tr>
+                        </volist>
+					</table>
+				</div>
+			</div>
+			<div class="box">
+				<div class="jiao lt"></div>
+				<div class="jiao rt"></div>
+				<div class="jiao lb"></div>
+				<div class="jiao rb"></div>
+				<div class="biaoti">客户地区分布</div>
+				<div id="my_favorite_latin_words" style="width: 100%;height: 290px;">
+
+				</div>
+				<script type="text/javascript" src="/Public/tjjs/script.js"></script>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		var timer1 = null;
+		var chart1 = Highcharts.chart('table1', {
+			chart: {
+				type: 'column',
+				backgroundColor: "rgba(0,0,0,0)",
+				events: {
+                     // load，图表加载完成时触发
+                     load: function () {
+                       var chart = this;
+                       var points = chart.series[0].points;
+                       var len = points.length;
+                       var i = 0;
+                       timer1 && clearInterval(timer1);
+                       timer1 = setInterval(function () {
+                         autoTooltip1(points[i]);
+                         i++;
+                         if (i === len) {
+                           i = 0;
+                         }
+                       }, 2000);
+                     }
+                   }
+			},
+			title: {
+				text: ''
+			},
+			subtitle: {
+				text: ''
+			},
+			xAxis: {
+				type: 'category',
+				labels: {
+					style: {
+				        color: "#00a9e0",
+				        fontSize: "12px"
+	        			}
+				},
+				lineColor: "#07376e",
+				tickLength: 0,
+			},
+			yAxis: {
+				min:0,
+				tickInterval: 50,
+				title: {
+					text: ''
+				},
+				labels: {
+					style: {
+				        color: "#00a9e0",
+				        fontSize: "12px"
+	        			}
+				},
+				lineColor: "#07376e",
+				lineWidth: 1,
+				gridLineColor: "rgba(0,0,0,0)"
+			},
+			legend: {
+				enabled: false
+			},
+			credits: {
+				enabled: false
+			},
+			exporting: {
+				enabled: false
+			},
+			tooltip: {
+				pointFormat: '<b>{point.y}个</b>'
+			},
+			plotOptions: {
+				column: {
+					borderWidth: 0,
+					pointWidth:35,
+				}
+			},
+			series: [{
+				name: '总人口',
+				data: [
+					['未接单', {$arr_dd[0]}],
+					['已接单', {$arr_dd[1]}],
+					['准备订单',{$arr_dd[2]}],
+					['已发货', {$arr_dd[3]}],
+					['已完成', {$arr_dd[4]}],
+				],
+				color: {
+					linearGradient: { x1: 0, x2: 0, y1: 0, y2: 1 },
+					stops: [
+						[0, '#01d9fe'],
+						[1, '#0477d5']
+					],
+					dataLabels: {
+						enabled: false,
+					}
+				}
+			}]
+		});
+		function autoTooltip1(point) {
+	        chart1.tooltip.refresh(point);
+	    }
+	</script>
+	<script type="text/javascript">
+		var timer2 = null;
+		var chart2 = Highcharts.chart('table2', {
+			chart: {
+				type: 'areaspline',
+				backgroundColor: "rgba(0,0,0,0)",
+				events: {
+	                // load，图表加载完成时触发
+	                load: function() {
+	                    var chart = this;
+	                    var points = chart.series[0].points;
+	                    var len = points.length;
+	                    var i = 0;
+	                    timer2 && clearInterval(timer2);
+	                    timer2 = setInterval(function() {
+	                        autoTooltip2(points[i]);
+	                        i++;
+	                        if (i === len) {
+	                            i = 0;
+	                        }
+	                    }, 2000);
+	                }
+	            }
+			},
+			title: {
+				text: ''
+			},
+			subtitle: {
+				text: ''
+			},
+			xAxis: {
+				min:1,
+				type: 'category',
+				categories: [{$arr_day}],
+				labels: {
+					style: {
+				        color: "#00a9e0",
+				        fontSize: "12px"
+	        			}
+				},
+				lineColor: "#07376e",
+				tickLength: 0,
+			},
+			yAxis: {
+				min:0,
+				// tickInterval: 50,
+				title: {
+					text: ''
+				},
+				labels: {
+					style: {
+				        color: "#00a9e0",
+				        fontSize: "12px"
+	        			}
+				},
+				lineColor: "#07376e",
+				lineWidth: 1,
+				gridLineColor: "rgba(0,0,0,0)"
+			},
+			tooltip: {
+				headerFormat:'<span style="font-size: 10px">{point.key}日</span><br/>',
+	            pointFormat: '{point.y}'
+	        },
+			legend: {
+				enabled: false
+			},
+			credits: {
+				enabled: false
+			},
+			exporting: {
+				enabled: false
+			},
+			plotOptions: {
+	            areaspline: {
+	                fillColor: {
+	                    linearGradient: {
+	                        x1: 0,
+	                        y1: 0,
+	                        x2: 0,
+	                        y2: 1
+	                    },
+	                    stops: [
+	                        [0, '#f2af53'],
+	                        [1, new Highcharts.Color('#f2af53').setOpacity(0).get('rgba')]
+	                    ]
+	                },
+	                marker: {
+	                    enabled: false,
+	                    symbol: 'circle',
+	                    radius: 2,
+	                    states: {
+	                        hover: {
+	                            enabled: true
+	                        }
+	                    }
+	                }
+	            }
+	        },
+			series: [{
+				name: '',
+				data: [{$arr_ddxl}],
+				color:'#f2af53',
+			}]
+		});
+		function autoTooltip2(point) {
+	        chart2.tooltip.refresh(point);
+	    }
+	</script>
+	<script type="text/javascript">
+		var timer3 = null;
+		var chart3 = Highcharts.chart('table3', {
+			chart: {
+				spacing : [20, 0 , 20, 0],
+				backgroundColor: "rgba(0,0,0,0)",
+				events: {
+	                // load，图表加载完成时触发
+	                load: function() {
+	                    var chart = this;
+	                    var points = chart.series[0].points;
+	                    var len = points.length;
+	                    var i = 0;
+	                    timer3 && clearInterval(timer3);
+	                    timer3 = setInterval(function() {
+	                        autoTooltip3(points[i]);
+	                        i++;
+	                        if (i === len) {
+	                            i = 0;
+	                        }
+	                    }, 2000);
+	                }
+	            }
+			},
+			title: {
+				floating:true,
+				text: '',
+				style: {
+					color: "#fff",
+				}
+			},
+			tooltip: {
+				enabled: false,
+				pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+			},
+			exporting: {
+				enabled: false
+			},
+			credits: {
+				enabled: false
+			},
+			plotOptions: {
+				pie: {
+					allowPointSelect: true,
+					cursor: 'pointer',
+					borderWidth: 0,
+					dataLabels: {
+						enabled: true,
+						format: '<font style="font-size:12px;font-weight:normal">{point.name}</font><br><b style="font-size:18px;">{point.y}</b>',
+						style: {
+							color: '#fff',
+							textOutline:"none",
+						}
+					},
+					point: {
+						events: {
+							mouseOver: function(e) {  // 鼠标滑过时动态更新标题
+								// 标题更新函数，API 地址：https://api.hcharts.cn/highcharts#Chart.setTitle
+								// chart.setTitle({
+								// 	text: e.target.name
+								// });
+							}
+							//, 
+							// click: function(e) { // 同样的可以在点击事件里处理
+							//     chart.setTitle({
+							//         text: e.point.name+ '\t'+ e.point.y + ' %'
+							//     });
+							// }
+						}
+					},
+				}
+			},
+			series: [{
+				type: 'pie',
+				innerSize: '70%',
+				name: '占比',
+				data: [
+					{name:'匠人', y: {$jjrs}, color:'#ffb652'},
+					{name:'渠道商', y: {$qdss}, color:'#00ffff'},
+					{name:'非遗继承人', y: {$jrs}, color:'#1999f7'},
+				]
+			}]
+		}, function(c) { // 图表初始化完毕后的会掉函数
+			// 环形图圆心
+			var centerY = c.series[0].center[1],
+				titleHeight = parseInt(c.title.styles.fontSize);
+			// 动态设置标题位置
+			c.setTitle({
+				y:centerY + titleHeight/2
+			});
+		});
+		function autoTooltip3(point) {
+			point.select(true);
+	        chart3.tooltip.refresh(point);
+	    }
+		function getTime(){
+			var myDate = new Date();
+			var myYear = myDate.getFullYear(); //获取完整的年份(4位,1970-????)
+			var myMonth = myDate.getMonth()+1; //获取当前月份(0-11,0代表1月)
+			var myToday = myDate.getDate(); //获取当前日(1-31)
+			var myDay = myDate.getDay(); //获取当前星期X(0-6,0代表星期天)
+			var myHour = myDate.getHours(); //获取当前小时数(0-23)
+			var myMinute = myDate.getMinutes(); //获取当前分钟数(0-59)
+			var mySecond = myDate.getSeconds(); //获取当前秒数(0-59)
+			var week = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+			var nowTime;
+		
+			nowTime = myYear+'-'+fillZero(myMonth)+'-'+fillZero(myToday)+'&nbsp;&nbsp;'+fillZero(myHour)+':'+fillZero(myMinute)+':'+fillZero(mySecond)+'&nbsp;&nbsp;'+week[myDay]+'&nbsp;&nbsp;';
+			//console.log(nowTime);
+			$('#time').html(nowTime);
+		};
+		function fillZero(str){
+			var realNum;
+			if(str<10){
+				realNum	= '0'+str;
+			}else{
+				realNum	= str;
+			}
+			return realNum;
+		}
+		setInterval(getTime,1000);
+	</script>
+	<script type="text/javascript">
+	  var data = [
+	    ['广州', 13, 200],
+	    ['浙江', 10, 123],
+	    ['江苏', 9, 222],
+	    ['北京', 8, 111],
+	    ['上海', 7, 111],
+	    ['河南', 6, 111],
+	    ['河北', 5, 111],
+	    ['四川', 5, 111],
+	    ['安徽', 5, 5],
+	    ['湖北', 5, 111],
+	    ['福建', 4, 111],
+	    ['辽宁', 4, 111],
+	    ['湖南', 3, 111],
+	    ['陕西', 3, 111],
+	    ['广西', 3, 111],
+	    ['江西', 3, 111],
+	    ['重庆', 3, 111],
+	    ['天津', 3, 111],
+	    ['云南', 2, 111],
+	    ['山西', 2, 111],
+	    ['黑龙江', 2, 111],
+	    ['吉林', 2, 111],
+	    ['内蒙古', 2, 111],
+	    ['贵州', 2, 111],
+	    ['甘肃', 2, 111],
+	    ['海南', 2, 111],
+	    ['宁夏', 2, 111],
+	    ['青海', 1, 111],
+	    ['西藏', 1, 111],
+	    ['香港', 20, 5],
+	    ['未知', 1, 111],
+	    ['台湾', 1, 111]
+	  ];
+	  
+	  var string_ = "";
+	  for (var i = 0; i < data.length; i++) {
+	    var string_f = data[i][0];
+	    var string_n = data[i][1];
+	    string_ += "{text: '" + string_f + "', weight: '" + string_n + "',html: {'class': 'span_list',onmouseover:'on_mouseover(this,event)',onmouseout:'on_mouseout()'}},";
+	  }
+
+	  function on_mouseover(e, ev) {
+	    var txt = $(e).html();
+	    ev = ev || event;
+	    $.each(data, function(i, item) {
+	      if(txt == item[0]){
+	        // var html = item[0]+"<br />曝光数"+item[1]+"<br />"+item[2];
+	        // $("#my_favorite_latin_words").after("<div class='append_div' style='left:" + ev.clientX + "px; top:" + ev.clientY + "px; '>" + html + "</div>");
+	        return;
+	      }
+	      
+	    });
+	  }
+	  $(function() {
+	    $("#my_favorite_latin_words").jQCloud(word_list);
+	  });
+	  var string_list = string_;
+	  var word_list = eval("[" + string_list + "]");
+
+	  function on_mouseout() {
+	    $(".append_div").remove();
+	  }
+	</script>
+</body>
+</html>

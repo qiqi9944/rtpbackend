@@ -1,0 +1,131 @@
+<include file="Public:header"/>
+<body style="background:#fff;">
+<div class="layui-card">
+    <form class="layui-form layui-form-pane">
+        <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+            <div class="layui-tab-content" >
+                <div class="layui-tab-item layui-show">
+                    <input type="hidden" name="id" value="{$data.id}">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">
+                            <span class='x-red'>*</span>产品类别
+                        </label>
+                        <div class="layui-input-block" style="line-height:30px; padding-left:10px;">
+                            {$data['catename']}
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">
+                            <span class='x-red'>*</span>产品名称
+                        </label>
+                        <div class="layui-input-block" style="line-height:30px; padding-left:10px;">
+                            {$data['name']}
+                        </div>
+                    </div>
+                    <?php if($data['type']){ ?>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">
+                            <span class='x-red'>*</span>产品细分
+                        </label>
+                        <div class="layui-input-block" style="line-height:30px; padding-left:10px;">
+                            {$data['catename2']}
+                            <input type="hidden" name="type" value="{$data.type}">
+                        </div>
+                    </div>
+                    <?php } ?>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">
+                            <span class='x-red'>*</span>导入文件
+                        </label>
+                        <div class="layui-input-inline">
+                            <div class="layui-upload">
+                              <button type="button" class="layui-btn" id="upload_pic1">上传EXCEL文件</button>
+                              <div class="layui-upload-list" id="upload_pic_list1">
+                              </div>
+                            </div>
+                        </div>
+                        <div class="layui-input-inline" style="width:400px;">
+                            <a href="{:U('Datas/downmb',array('id'=>$data['id'],'type'=>$data['type']))}" style="color:#06F; line-height:30px; margin-left:10px;"><i class="layui-icon">&#xe601;</i><span style=" padding-left:5px;">下载导入模板</span></a><span style="color:red;"><br>&nbsp;&nbsp;&nbsp;&nbsp;文件中的值必须为数值或文本格式，不能是函数<br>&nbsp;&nbsp;&nbsp;&nbsp;其中月度必须是文本格式，否则10月会变成1月，如23.10会变成23.1</span>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <button class="layui-btn" type="button" lay-filter="add" lay-submit="">
+                            保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+<script>
+    layui.use(['form', 'layer', 'upload'],
+		function() {
+			$ = layui.jquery;
+			var form = layui.form,
+			layer = layui.layer;
+			var upload = layui.upload;
+			
+			var loadingIndex;
+            var uploadInst = upload.render({
+			  elem: '#upload_pic1'
+			  ,url: "{:U('Ajax/uploadexcel')}" //改成您自己的上传接口
+			  ,method: 'post'
+              ,accept: 'file'
+			  ,before:function(obj){
+				  loadingIndex = layer.load(1, {
+					  shade: [0.5,'#000'] //0.1透明度的背景
+				  });
+			  }
+			  ,done: function(res){
+				  layer.close(loadingIndex);
+				  //如果上传失败
+				  if(res.code > 0){
+					  return layer.msg(res.msg);
+				  }else{
+					  //上传成功
+					  var html='<p><a href="'+res.src+'" target="_blank">'+res.name+'</a><input type="hidden" name="excel" value="'+res.src+'"></p>';
+					  $('#upload_pic_list1').html(html);
+				  }
+			  }
+			});
+			//监听提交
+			form.on('submit(add)',function(data) {
+				var loadingIndex;
+				
+				var data = data.field;
+				$.ajax({
+					type:"post",
+					url:"{:U('Datas/doexcel')}",
+					data:data,
+					dataType:"json",
+					beforeSend: function () {
+					  loadingIndex = layer.load(1, {
+						  shade: [0.5,'#000'] //0.1透明度的背景
+					  });
+					},
+					success:function(data){
+						console.log(data);
+						layer.close(loadingIndex);
+						if(data.status==1){
+							layer.msg(data.info, {icon: 6,time:1000},function () {
+								var index = parent.layer.getFrameIndex(window.name);
+								parent.layer.close(index);
+								window.parent.location.reload();
+							});
+							return false;
+						}else{
+							layer.msg(data.info,{icon:5,time:1000});return false;
+						}
+					}
+	
+				});
+				return false;
+			});
+
+		});
+</script>
+
+</body>
+</html>

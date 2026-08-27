@@ -1,0 +1,118 @@
+<include file="Public:header"/>
+<body>
+<div class="x-nav">
+          <span class="layui-breadcrumb">
+            <a href="">首页</a>
+            <a><cite>后台账号</cite></a>
+          </span>
+    <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onClick="location.reload()" title="刷新">
+        <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i></a>
+</div>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body ">
+                    <form class="layui-form layui-col-space5">
+                        <div class="layui-inline layui-show-xs-block">
+                            <select name="sel_status">
+                            <option value="0">状态</option>
+                            <option value="1"<?php if($sel_status==1){ ?> selected="selected"<?php } ?>>已启用</option>
+                            <option value="2"<?php if($sel_status==2){ ?> selected="selected"<?php } ?>>已禁用</option>
+                            </select>
+                        </div>
+                        <div class="layui-inline layui-show-xs-block">
+                            <input type="text" name="keywords" value="{$keywords}"  placeholder="请输入用户名/姓名" autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-inline layui-show-xs-block">
+                            <button class="layui-btn"  lay-submit="" lay-filter="sreach"><i class="layui-icon">&#xe615;</i></button>
+                        </div>
+                        <div class="layui-inline layui-show-xs-block index_counts">
+                            <p class="counts">共<span>{$count}</span>条信息</p>
+                        </div>
+                    </form>
+                </div>
+                <div class="layui-card-header">
+                    <button class="layui-btn" onClick="xadmin.open('添加后台账号','{:U('User/adminadd')}','700','550')"><i class="layui-icon"></i>添加</button>
+                </div>
+                <div class="layui-card-body layui-table-body layui-table-main">
+                    <table class="layui-table layui-form">
+                        <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>姓名</th>
+                            <th>联系方式</th>
+                            <th>栏目管理</th>
+                            <th width="100">状态</th>
+                            <th width="50">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <volist name="datalist" id="v">                        
+                        <tr>
+                            <td>{$v['username']}</td>
+                            <td>{$v['name']}</td>
+                            <td>{$v['phone']}</td>
+                            <td>{$v['lm']}</td>
+                            <td class="td-status">
+                            <?php if($v['status']==1){ ?><span class="layui-btn layui-btn-normal " > 已启用 </span><?php } ?>
+                            <?php if($v['status']==2){ ?><span class="layui-btn layui-btn-danger " > 已禁用 </span><?php } ?>
+                            </td>
+                            <td class="td-manage">
+                                <a title="编辑" href="javascript:;" onClick="xadmin.open('编辑','{:U('User/adminadd',array('id'=>$v['id']))}','700','550')"
+                                   class="ml-5" style="text-decoration:none">
+                                    <i class="layui-icon">&#xe642;</i>
+                                </a>
+                                <a title="删除" href="javascript:;" onClick="member_del(this,'{$v['id']}')"
+                                   style="text-decoration:none">
+                                    <i class="layui-icon">&#xe640;</i>
+                                </a></td>
+                        </tr>
+                        </volist>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="layui-card-body ">
+                    <div class="page">
+                        {$page}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    layui.use(['layer','form','element'], function(){
+        var layer = layui.layer;
+        var form = layui.form;
+        var element = layui.element;
+		element.render();
+    });
+    /*用户-删除*/
+    function member_del(obj,id){
+        layer.confirm('确认要删除吗？',function(index){
+            //发异步删除数据
+			$.ajax({
+				type:'POST',
+				url:"{:U('User/admindel')}",
+				data:{
+					id: id
+				},
+				success:function (data) {
+					if(data.status ==1){
+						layer.msg(data.info, {icon: 6,time:1000},function () {
+							window.parent.location.reload();
+						});
+					}else{
+						layer.msg(data.info,{icon: 5,time:1000});
+					}
+				}
+			});
+			return false;
+        });
+    }
+</script>
+</html>

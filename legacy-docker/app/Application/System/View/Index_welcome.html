@@ -1,0 +1,186 @@
+<include file="Public:header"/>
+<script src="/Public/charts/js/highcharts.js"></script>
+<script src="/Public/charts/js/modules/exporting.js"></script>
+        <div class="layui-fluid">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-body ">
+                            <blockquote class="layui-elem-quote">欢迎登录：
+                                <span class="x-red" >{$hdadmin['username']}</span>
+                                <span id="time"></span>
+                            </blockquote>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-header">数据统计</div>
+                        <div class="layui-card-body ">
+                            <ul class="layui-row layui-col-space10 layui-this x-admin-carousel x-admin-backlog">
+                                <volist name="arr_sj" id="v">
+                                <?php if($key<6){ ?>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                <a href="javascript:;" class="x-admin-backlog-body">
+                                    <h2>{$v['name']}</h2>
+                                    <h3>最新数据时间 {$v['sjtime']}</h3>
+                                    <p><?php if($v['num']){ ?><cite style="color:green;">已上传</cite><?php }else{ ?><cite style="color:red;">未上传</cite><?php } ?></p>
+                                </a>
+                                </li>
+                                <?php } ?>
+                                </volist>
+                            </ul>
+                        </div>
+                        <div class="layui-card-body" style="padding-top:0px;">
+                            <ul class="layui-row layui-col-space10 layui-this x-admin-carousel x-admin-backlog">
+                                <volist name="arr_sj" id="v">
+                                <?php if($key>5){ ?>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                <a href="javascript:;" class="x-admin-backlog-body">
+                                    <h2>{$v['name']}</h2>
+                                    <h3>最新数据时间 {$v['sjtime']}</h3>
+                                    <p><?php if($v['num']){ ?><cite style="color:green;">已上传</cite><?php }else{ ?><cite style="color:red;">未上传</cite><?php } ?></p>
+                                </a>
+                                </li>
+                                <?php } ?>
+                                </volist>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-sm6 layui-col-md4">
+                    <div class="layui-card">
+                        <div class="layui-card-header">新增用户数（人）</div>
+                        <div class="layui-card-body">
+                            <div id="container1" style="width: 100%;height: 400px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-sm6 layui-col-md8">
+                    <div class="layui-card">
+                        <div class="layui-card-header">小程序每日浏览量（PV）</div>
+                        <div class="layui-card-body ">
+                            <div id="container2" style="width: 100%;height: 400px;"></div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        </div>
+    </body>
+<script type="text/javascript">
+$('#container1').highcharts({
+	exporting: {
+		enabled:false//去掉右上角下载按钮
+	},
+    chart: {
+        type: 'column'
+    },
+    title: {
+        text: ''
+    },
+    xAxis: {
+        categories: [{$arr_day}],
+        title: {
+            text: null
+        }
+    },
+    yAxis: {
+		allowdecimals: false,
+		//tickInterval:1,
+        min: 0,
+        title: {
+            text: '',
+            align: 'high'
+        },
+        labels: {
+            overflow: 'justify'
+        }
+    },
+	legend: {
+			enabled: false 
+	},
+    tooltip: {
+        valueSuffix: ' 人'
+    },
+	plotOptions: {
+        bar: {
+            dataLabels: {
+				enabled: true //设置显示对应y的值
+			}
+        }
+    },
+    series: [{
+        name: '用户',
+        data: [{$arr_user}],
+        dataLabels: {
+            enabled: true,
+            rotation: 0,
+            color: '#000000',
+            //align: 'right',
+            format: '{point.y}', // :.1f 为保留 1 位小数
+           
+        }
+    }]
+});
+$('#container2').highcharts({
+	    exporting: {
+            enabled:false//去掉右上角下载按钮
+        },
+		title: {
+				text: ''
+		},
+		xAxis: {
+			categories: [{$arr_day}]
+		},
+		yAxis: {
+			    allowdecimals: false,
+		        //tickInterval:1,
+                min: 0,
+				title: {
+						text: ''
+				}
+		},
+		legend: {
+				enabled: false 
+		},
+		series: [{
+				name: '浏览量',
+				data: [{$arr_liulan}],
+				dataLabels: {
+					enabled: true,
+					rotation: 0,
+					color: '#000000',
+					//align: 'right',
+					format: '{point.y}', // :.1f 为保留 1 位小数
+				   
+				}
+		}]
+});
+function getTime(){
+	var myDate = new Date();
+	var myYear = myDate.getFullYear(); //获取完整的年份(4位,1970-????)
+	var myMonth = myDate.getMonth()+1; //获取当前月份(0-11,0代表1月)
+	var myToday = myDate.getDate(); //获取当前日(1-31)
+	var myDay = myDate.getDay(); //获取当前星期X(0-6,0代表星期天)
+	var myHour = myDate.getHours(); //获取当前小时数(0-23)
+	var myMinute = myDate.getMinutes(); //获取当前分钟数(0-59)
+	var mySecond = myDate.getSeconds(); //获取当前秒数(0-59)
+	var week = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+	var nowTime;
+
+	nowTime = myYear+'-'+fillZero(myMonth)+'-'+fillZero(myToday)+'&nbsp;&nbsp;'+fillZero(myHour)+':'+fillZero(myMinute)+':'+fillZero(mySecond)+'&nbsp;&nbsp;'+week[myDay]+'&nbsp;&nbsp;';
+	//console.log(nowTime);
+	$('#time').html(nowTime);
+};
+function fillZero(str){
+	var realNum;
+	if(str<10){
+		realNum	= '0'+str;
+	}else{
+		realNum	= str;
+	}
+	return realNum;
+}
+setInterval(getTime,1000);
+</script>
+</html>

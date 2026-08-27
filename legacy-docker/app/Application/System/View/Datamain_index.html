@@ -1,0 +1,86 @@
+<include file="Public:header"/>
+<body>
+<div class="x-nav">
+    <span class="layui-breadcrumb">
+        <a href="">首页</a>
+        <a><cite>市场数据维护</cite></a>
+    </span>
+    <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onClick="location.reload()" title="刷新">
+        <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i></a>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body ">
+          <form class="layui-form layui-col-space5">
+            <div class="layui-inline">
+              <input class="layui-input" placeholder="市场(中国/全球)" name="market" value="{$market}">
+            </div>
+            <div class="layui-inline">
+              <input class="layui-input" placeholder="品径(零售/出货)" name="lx" value="{$lx}">
+            </div>
+            <div class="layui-inline">
+              <input class="layui-input" placeholder="品牌/年份" name="keywords" value="{$keywords}">
+            </div>
+            <div class="layui-inline">
+              <button class="layui-btn" lay-submit="" lay-filter="sreach"><i class="layui-icon">&#xe615;</i>查询</button>
+            </div>
+          </form>
+        </div>
+        <div class="layui-card-header">
+          <button class="layui-btn" onClick="xadmin.open('新增数据','{:U('Datamain/add')}','800','600')"><i class="layui-icon">&#xe654;</i>新增数据</button>
+        </div>
+        <div class="layui-card-body layui-table-body layui-table-main">
+          <table class="layui-table layui-form">
+            <thead><tr>
+              <th>品类</th><th>市场</th><th>品径</th><th>年份</th><th>年月</th>
+              <th>品牌</th><th>渠道</th><th>技术</th><th>价格档</th><th>销量</th><th>销额</th><th>操作</th>
+            </tr></thead>
+            <tbody>
+            <volist name="datalist" id="v">
+            <tr>
+              <td>{$v['typename']}</td>
+              <td>{$v['market']}</td>
+              <td>{$v['lx']}</td>
+              <td>{$v['nd']}</td>
+              <td>{$v['yd']}</td>
+              <td>{$v['pp']}</td>
+              <td>{$v['ds']}</td>
+              <td>{$v['gy1']}</td>
+              <td>{$v['gy2']}</td>
+              <td>{$v['xl']}</td>
+              <td>{$v['xe']}</td>
+              <td>
+                <a title="删除" href="javascript:;" onClick="member_del(this,'{$v['id']}')" style="text-decoration:none"><i class="layui-icon">&#xe640;</i></a>
+              </td>
+            </tr>
+            </volist>
+            </tbody>
+          </table>
+        </div>
+        <div class="layui-card-body"><div class="page">{$page}</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+  layui.use(['layer','form','element'], function(){
+    var layer=layui.layer, form=layui.form, element=layui.element;
+    element.render();
+    form.on('submit(sreach)',function(){ return true; });
+  });
+  function member_del(obj,id){
+    layer.confirm('确认要删除吗？',function(index){
+      $.ajax({ type:'POST', url:"{:U('Datamain/del')}", data:{id:id},
+        success:function(data){
+          if(data.status==1){ layer.msg(data.info,{icon:6,time:1000},function(){window.parent.location.reload();}); return false; }
+          else{ layer.msg(data.info,{icon:5,time:1000}); }
+        }
+      });
+      return false;
+    });
+  }
+</script>
+</html>

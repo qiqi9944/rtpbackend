@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -RInE 'function [A-Za-z0-9_]+\\\\\\(|$_\\(GET|POST|REQUEST|FILES\\)|I\\\\\\('\\\\''post\\\\.|I\\\\\\('\\\\''get\\\\.|I\\\\\\('\\\\''request\\\\.|ajaxReturn|json_encode|header\\\\\\(|session\\\\\\(|Cookie\\\\\\(|upload|Upload|move_upload' /Users/dongliang04/workspace/rtpbackend/洛图后台源代码/Application/System/Controller /Users/dongliang04/workspace/rtpbackend/洛图后台源代码/Application/Common/Common/function.php)",
+      "Bash(lt_\" /Users/dongliang04/workspace/rtpbackend/洛图数据库.sql)",
+      "Bash(grep -RInE \"CREATE TABLE|lt_[A-Za-z0-9_]+|`lt_\" /Users/dongliang04/workspace/rtpbackend/洛图数据库.sql)",
+      "Bash(grep -nE \"public function|\\\\$[A-Za-z0-9_]+ *= *I\\\\\\(|I\\\\\\('\\\\w|M\\\\\\('\" /Users/dongliang04/workspace/rtpbackend/洛图后台源代码/Application/System/Controller/WxapiController.class.php)"
+    ]
+  }
+}

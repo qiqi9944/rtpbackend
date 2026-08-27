@@ -1,0 +1,89 @@
+<include file="Public:header"/>
+<!--百度编辑器-->
+<script src="/Public/ueditor/ueditor.config.js"></script>
+<script src="/Public/ueditor/ueditor.all.min.js"></script>
+<script src="/Public/ueditor/lang/zh-cn/zh-cn.js"></script>
+<body>
+<div class="layui-card">
+    <form class="layui-form layui-form-pane">
+        <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+            <div class="layui-tab-content" >
+                <div class="layui-tab-item layui-show">
+                    <input type="hidden" name="id" value="{$id}">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">
+                            <span class='x-red'>*</span>产品类别
+                        </label>
+                        <div class="layui-input-block" style="line-height:30px; padding-left:10px;">
+                            {$data['catename']}
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">
+                            <span class='x-red'>*</span>产品名称
+                        </label>
+                        <div class="layui-input-block" style="line-height:30px; padding-left:10px;">
+                            {$data['name']}
+                        </div>
+                    </div> 
+                    <div class="layui-form-item">
+                        <label for="link" class="layui-form-label">
+                            <span class="x-red">*</span>内容
+                        </label>
+                        <div class="layui-input-inline">
+                            <textarea id="content" name="content" lay-verify="required">{:htmlspecialchars_decode(stripslashes($data['content']))}</textarea>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <button class="layui-btn" type="button" lay-filter="add" lay-submit="">
+                            保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+    //实例化编辑器
+    //建议使用工厂方法getEditor创建和引用编辑器实例，如果在某个闭包下引用该编辑器，直接调用UE.getEditor('editor')就能拿到相关的实例
+    UE.getEditor('content',{initialFrameWidth:630,initialFrameHeight:400,autoFloatEnabled:false,autoHeightEnabled: false, zIndex: 100});
+</script>
+<script>
+    layui.use(['form', 'layer'],
+		function() {
+			$ = layui.jquery;
+			var form = layui.form,
+			layer = layui.layer;
+            
+			//监听提交
+			form.on('submit(add)',function(data) {
+				var data = data.field;
+				$.ajax({
+					type:"post",
+					url:"{:U('Datas/dohtml')}",
+					data:data,
+					dataType:"json", 
+					success:function(data){
+						if(data.status==1){
+							layer.msg(data.info, {icon: 6,time:1000},function () {
+								var index = parent.layer.getFrameIndex(window.name);
+								parent.layer.close(index);
+								window.parent.location.reload();
+							});
+							return false;
+						}else{
+							layer.msg(data.info,{icon:5,time:1000});return false;
+						}
+					}
+	
+				});
+				return false;
+			});
+
+		});
+</script>
+
+</body>
+</html>

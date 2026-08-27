@@ -1,0 +1,445 @@
+<include file="Public:header"/>
+<body>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body ">
+                    <form class="layui-form layui-col-space5">
+                        <?php if($id==5){ ?>
+                        <div class="layui-inline layui-show-xs-block" style="width:120px;">
+                            <select name="type">
+                            <option value="1"<?php if($type==1){ ?> selected="selected"<?php } ?>>品牌尺寸库</option>
+                            <option value="2"<?php if($type==2){ ?> selected="selected"<?php } ?>>产品技术库</option>
+                            </select>
+                        </div>
+                        <?php } ?>
+                        <div class="layui-inline layui-show-xs-block" style="width:120px;">
+                            <input type="text" name="sel_nd" value="<?php if($sel_nd){ ?>{$sel_nd}<?php } ?>"  placeholder="年度" autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-inline layui-show-xs-block">
+                            <button class="layui-btn"  lay-submit="" lay-filter="sreach"><i class="layui-icon">&#xe615;</i></button>
+                        </div>
+                        <div class="layui-inline layui-show-xs-block index_counts">
+                            <p class="counts">共<span>{$count}</span>条信息</p>
+                        </div>
+                    </form>
+                </div>
+                <div class="layui-card-body layui-table-body layui-table-main">
+                    <table class="layui-table layui-form">
+                        <?php if(in_array($id,array(1,2,3,4,13,14,15,16,19))){ ?>
+                        <thead>
+                        <tr>
+                            <th width="100">年度</th>
+                            <th width="100">月度</th>
+                            <?php if($id!==13){ ?>
+                            <th width="100"><?php if($id==3){ ?>平台<?php }else{ ?>电商<?php } ?></th>
+                            <?php } ?>
+                            <th width="100">品牌</th>
+                            <?php if($id!==13){ ?>
+                            <th width="100"><?php if($id==1){ ?>投影技术<?php }elseif($id==2){ ?>屏幕<?php }elseif($id==3){ ?>成交单价<?php }elseif($id==4){ ?>分辨率规格<?php }elseif($id==14){ ?>平板类型<?php }elseif($id==15 || $id==19){ ?>屏幕类型<?php }elseif($id==16){ ?>产品类型<?php } ?></th>
+                            <?php } ?>
+                            <th width="100"><?php if($id==1){ ?>亮度范围<?php }elseif($id==2){ ?>麦克风阵列<?php }elseif($id==3 || $id==13){ ?>价格段<?php }elseif($id==4){ ?>CPU核数<?php }elseif($id==14){ ?>屏幕技术<?php }elseif($id==15 || $id==19){ ?>光学方案<?php }elseif($id==16){ ?>音频解码<?php } ?></th>
+                            <th width="100">销量</th>
+                            <th width="">销额</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <volist name="datalist" id="v">
+                        <tr>
+                            <td>{$v['nd']}</td>
+                            <td>{$v['yd']}</td>
+                            <?php if($id!==13){ ?>
+                            <td>{$v['ds']}</td>
+                            <?php } ?>
+                            <td>{$v['pp']}</td>
+                            <?php if($id!==13){ ?>
+                            <td>{$v['gy1']}</td>
+                            <?php } ?>
+                            <td>{$v['gy2']}</td>
+                            <td>{$v['xl']}</td>
+                            <td>{$v['xe']}</td>
+                        </tr>
+                        </volist>
+                        </tbody>
+                        <?php }elseif($id==5 && $type==1){ ?>
+                        <thead>
+                        <tr>
+                            <th width="80">年度</th>
+                            <th width="80">半年度</th>
+                            <th width="80">季度</th>
+                            <th width="100">产品场景</th>
+                            <th width="100">产品显示类型</th>
+                            <th width="100">显示类型</th>
+                            <th width="100">企业</th>
+                            <th width="100">品牌</th>
+                            <th width="100">品牌简写</th>
+                            <th width="100">触控技术</th>
+                            <th width="100">触控技术-产品</th>
+                            <th width="100">尺寸段</th>
+                            <th width="100">尺寸</th>
+                            <th width="100">出货量（K）</th>
+                            <th width="100">市场价（元/台）</th>
+                            <th width="100">销售额(Mn)</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <volist name="datalist" id="v">
+                        <tr>
+                            <td>{$v['nd']}</td>
+                            <td>{$v['bnd']}</td>
+                            <td>{$v['jd']}</td>
+                            <td>{$v['cpcj']}</td>
+                            <td>{$v['cplx']}</td>
+                            <td>{$v['xslx']}</td>
+                            <td>{$v['qy']}</td>
+                            <td>{$v['pp']}</td>
+                            <td>{$v['ppjx']}</td>
+                            <td>{$v['ckjs']}</td>
+                            <td>{$v['ckjscp']}</td>
+                            <td>{$v['chcd']}</td>
+                            <td>{$v['chc']}</td>
+                            <td>{$v['chl']}</td>
+                            <td>{$v['scj']}</td>
+                            <td>{$v['xse']}</td>
+                        </tr>
+                        </volist>
+                        </tbody>
+                        <?php }elseif($id==5 && $type==2){ ?>
+                        <thead>
+                        <tr>
+                            <th width="80">年度</th>
+                            <th width="80">半年度</th>
+                            <th width="80">季度</th>
+                            <th width="100">产品场景</th>
+                            <th width="100">产品显示类型</th>
+                            <th width="100">触控技术</th>
+                            <th width="100">细分电容技术</th>
+                            <th width="100">出货量（K）</th>
+                            <th width="100">销售额(Mn)</th>
+                            <th width="100">均价（元/台）</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <volist name="datalist" id="v">
+                        <tr>
+                            <td>{$v['nd']}</td>
+                            <td>{$v['bnd']}</td>
+                            <td>{$v['jd']}</td>
+                            <td>{$v['cpcj']}</td>
+                            <td>{$v['cplx']}</td>
+                            <td>{$v['ckjs']}</td>
+                            <td>{$v['ckjscp']}</td>
+                            <td>{$v['chl']}</td>
+                            <td>{$v['xse']}</td>
+                            <td>{$v['scj']}</td>
+                        </tr>
+                        </volist>
+                        </tbody>
+                        <?php }elseif($id==6){ ?>
+                        <thead>
+                        <tr>
+                            <th width="100">年度</th>
+                            <th width="100">半年度</th>
+                            <th width="100">季度</th>
+                            <th width="100">企业类型</th>
+                            <th width="100">企业</th>
+                            <th width="100">产品类型</th>
+                            <th width="100">尺寸</th>
+                            <th width="100">梯媒</th>
+                            <th width="100">产品</th>
+                            <th width="100">尺寸段</th>
+                            <th width="100">出货量（K台）</th>
+                            <th width="100">销售额(Mn RMB)</th>
+                            <th width="100">均价</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <volist name="datalist" id="v">
+                        <tr>
+                            <td>{$v['nd']}</td>
+                            <td>{$v['bnd']}</td>
+                            <td>{$v['jd']}</td>
+                            <td>{$v['xslx']}</td>
+                            <td>{$v['qy']}</td>
+                            <td>{$v['cplx']}</td>
+                            <td>{$v['chc']}</td>
+                            <td>{$v['ckjs']}</td>
+                            <td>{$v['cpcj']}</td>
+                            <td>{$v['chcd']}</td>
+                            <td>{$v['chl']}</td>
+                            <td>{$v['xse']}</td>
+                            <td>{$v['scj']}</td>
+                        </tr>
+                        </volist>
+                        </tbody>
+                        <?php }elseif($id==7){ ?>
+                        <thead>
+                        <tr>
+                            <th width="100">年度</th>
+                            <th width="100">半年度</th>
+                            <th width="100">季度</th>
+                            <th width="100">品牌</th>
+                            <th width="100">应用行业</th>
+                            <th width="100">投影技术</th>
+                            <th width="100">亮度范围</th>
+                            <th width="100">分辨率规格</th>
+                            <th width="100">出货量（台）</th>
+                            <th width="100">均价（万元）</th>
+                            <th width="100">销售额（万元）</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <volist name="datalist" id="v">
+                        <tr>
+                            <td>{$v['nd']}</td>
+                            <td>{$v['bnd']}</td>
+                            <td>{$v['jd']}</td>
+                            <td>{$v['pp']}</td>
+                            <td>{$v['xslx']}</td>
+                            <td>{$v['cpcj']}</td>
+                            <td>{$v['cplx']}</td>
+                            <td>{$v['chcd']}</td>
+                            <td>{$v['chl']}</td>
+                            <td>{$v['scj']}</td>
+                            <td>{$v['xse']}</td>
+                        </tr>
+                        </volist>
+                        </tbody>
+                        <?php }elseif($id==18){ ?>
+                        <thead>
+                        <tr>
+                            <th width="100">年度</th>
+                            <th width="100">半年度</th>
+                            <th width="100">季度</th>
+                            <th width="100">品牌</th>
+                            <th width="100">尺寸段</th>
+                            <th width="100">出货量（台）</th>
+                            <th width="100">均价（万元）</th>
+                            <th width="100">销售额（万元）</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <volist name="datalist" id="v">
+                        <tr>
+                            <td>{$v['nd']}</td>
+                            <td>{$v['bnd']}</td>
+                            <td>{$v['jd']}</td>
+                            <td>{$v['pp']}</td>
+                            <td>{$v['chcd']}</td>
+                            <td>{$v['chl']}</td>
+                            <td>{$v['scj']}</td>
+                            <td>{$v['xse']}</td>
+                        </tr>
+                        </volist>
+                        </tbody>
+                        <?php }elseif($id==9){ ?>
+                        <thead>
+                        <tr>
+                            <?php if($type==1){ ?>
+                            <th width="100">年份</th>
+                            <th width="100">季度</th>
+                            <th width="100">技术</th>
+                            <th width="100">Brand</th>
+                            <th width="100">Size</th>
+                            <th width="100">尺寸段</th>
+                            <th width="100">出货量(千台）</th>
+                            <?php }elseif($type==6){ ?>
+                            <th width="100">年度</th>
+                            <th width="100">月度</th>
+                            <th width="">出货量(千台）</th>
+                            <?php }elseif($type==11){ ?>
+                                <th width="100">年度</th>
+                                <th width="100">月度</th>
+                                <th width="120">出口额/人民币</th>
+                                <th width="">出口数量</th>
+                            <?php }else{ ?>
+                            <?php if($type==2){ ?><th width="100">ODM Factory</th><?php } ?>
+                            <th width="100">Year</th>
+                            <th width="100">Quarter</th>
+                            <th width="100">Month</th>
+                            <?php if($type==2){ ?>
+                            <th width="100">Domestic/Overseas</th>
+                            <th width="100">Customer</th>
+                            <th width="100">Size</th>
+                            <th width="">Shipments(K Pcs)</th>
+                            <?php } ?>
+                            <?php if($type==3){ ?>
+                            <th width="100">Maker</th>
+                            <th width="100">Size</th>
+                            <th width="100">Shipments(K)</th>
+                            <th width="">尺寸段</th>
+                            <?php } ?>
+                            <?php } ?>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <volist name="datalist" id="v">
+                        <tr>
+                            <?php if($type==1){ ?>
+                            <td>{$v['nd']}</td>
+                            <td>{$v['jd']}</td>
+                            <td>{$v['odm']}</td>
+                            <td>{$v['gy1']}</td>
+                            <td>{$v['chc']}</td>
+                            <td>{$v['gy2']}</td>
+                            <td>{$v['ch']}</td>
+                            <?php }elseif($type==6){ ?>
+                            <td>{$v['nd']}</td>
+                            <td>{$v['yd']}</td>
+                            <td>{$v['ch']}</td>
+                            <?php }elseif($type==11){ ?>
+                            <td>{$v['nd']}</td>
+                            <td>{$v['yd']}</td>
+                            <td>{$v['xe']}</td>
+                            <td>{$v['ch']}</td>
+                            <?php }else{ ?>
+                            <?php if($type==2){ ?><td>{$v['odm']}</td><?php } ?>
+                            <td>{$v['nd']}</td>
+                            <td>{$v['jd']}</td>
+                            <td>{$v['yd']}</td>
+                            <?php if($type==2){ ?>
+                            <td>{$v['gy1']}</td>
+                            <td>{$v['gy2']}</td>
+                            <td>{$v['chc']}</td>
+                            <td>{$v['ch']}</td>
+                            <?php } ?>
+                            <?php if($type==3){ ?>
+                            <td>{$v['gy2']}</td>
+                            <td>{$v['chc']}</td>
+                            <td>{$v['ch']}</td>
+                            <td>{$v['gy1']}</td>
+                            <?php } ?>
+                            <?php } ?>
+                        </tr>
+                        </volist>
+                        </tbody>
+                        <?php }elseif($id==11){ ?>
+                        <thead>
+                            <tr>
+                                <th width="100">Year</th>
+                                <th width="100">Quarter</th>
+                                <th width="100">Month</th>
+                                <th width="100">Company</th>
+                                <th width="100">Size</th>
+                                <th width="100">Q'ty(Kpcs)</th>
+                                <th width="100">面积-K㎡</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <volist name="datalist" id="v">
+                            <tr>
+                                <td>{$v['nd']}</td>
+                                <td>{$v['jd']}</td>
+                                <td>{$v['yd']}</td>
+                                <td>{$v['gy1']}</td>
+                                <td>{$v['chc']}</td>
+                                <td>{$v['ch']}</td>
+                                <td>{$v['gy2']}</td>
+                            </tr>
+                            </volist>
+                        </tbody>
+                        <?php }elseif($id==12 || $id==17 || $id==21){ ?>
+                        <thead>
+                            <tr>
+                                <?php if($type==4){ ?>
+                                <th width="100">年份</th>
+                                <th width="100">季度</th>
+                                <th width="100">厂商</th>
+                                <th width="100">尺寸</th>
+                                <th width="100">颜色</th>
+                                <th width="100">出货量（K）</th>
+                                <th width="100">应用场景</th>
+                                <?php }elseif($type==5){ ?>
+                                <th width="100">年份</th>
+                                <th width="100">月度</th>
+                                <th width="100">电商平台</th>
+                                <th width="100">品牌</th>
+                                <th width="100">机型</th>
+                                <th width="100">产品类型</th>
+                                <th width="100">销量（台）</th>
+                                <th width="100">销额（元）</th>
+                                <?php }elseif($type==8){ ?>
+                                <th width="100">年份</th>
+                                <th width="100">月度</th>
+                                <th width="100">电商类型</th>
+                                <th width="100">品牌</th>
+                                <th width="100">产品类型</th>
+                                <th width="100">屏幕尺寸</th>
+                                <th width="100">销量</th>
+                                <th width="100">销额</th>
+                                <?php }elseif($type==10){ ?>
+                                <th width="100">年份</th>
+                                <th width="100">月度</th>
+                                <th width="100">地区</th>
+                                <th width="100">国家</th>
+                                <th width="100">销量</th>
+                                <th width="100">销额</th>
+                                <?php }elseif($type==12){ ?>
+                                <th width="100">年份</th>
+                                <th width="100">月度</th>
+                                <th width="100">电商类型</th>
+                                <th width="100">品牌</th>
+                                <th width="100">游戏本</th>
+                                <th width="100">屏幕尺寸</th>
+                                <th width="100">销量</th>
+                                <th width="100">销额</th>
+                                <?php } ?>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <volist name="datalist" id="v">
+                            <tr>
+                                <?php if($type==4){ ?>
+                                <td>{$v['nd']}</td>
+                                <td>{$v['jd']}</td>
+                                <td>{$v['odm']}</td>
+                                <td>{$v['chc']}</td>
+                                <td>{$v['gy1']}</td>
+                                <td>{$v['ch']}</td>
+                                <td>{$v['gy2']}</td>
+                                <?php }elseif($type==5 || $type==8 || $type==12){ ?>
+                                <td>{$v['nd']}</td>
+                                <td>{$v['yd']}</td>
+                                <td>{$v['odm']}</td>
+                                <td>{$v['gy1']}</td>
+                                <td>{$v['gy2']}</td>
+                                <td>{$v['chc']}</td>
+                                <td>{$v['ch']}</td>
+                                <td>{$v['xe']}</td>
+                                <?php }elseif($type==10){ ?>
+                                <td>{$v['nd']}</td>
+                                <td>{$v['yd']}</td>
+                                <td>{$v['gy1']}</td>
+                                <td>{$v['gy2']}</td>
+                                <td>{$v['ch']}</td>
+                                <td>{$v['xe']}</td>
+                                <?php } ?>
+                            </tr>
+                            </volist>
+                        </tbody>
+                        <?php } ?>
+                    </table>
+                </div>
+
+                <div class="layui-card-body ">
+                    <div class="page">
+                        {$page}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+	layui.use(['layer','form','element'], function(){
+        var layer = layui.layer;
+        var form = layui.form;
+        var element = layui.element;
+		element.render();
+    });
+
+</script>
+</html>

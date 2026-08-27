@@ -1,0 +1,139 @@
+<include file="Public:header"/>
+<!--百度编辑器-->
+<script src="/Public/ueditor/ueditor.config.js"></script>
+<script src="/Public/ueditor/ueditor.all.min.js"></script>
+<script src="/Public/ueditor/lang/zh-cn/zh-cn.js"></script>
+<body>
+<div class="x-nav">
+          <span class="layui-breadcrumb">
+            <a href="">首页</a>
+            <a><cite>系统设置</cite></a>
+          </span>
+    <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onClick="location.reload()" title="刷新">
+        <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i></a>
+</div>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+                    <div class="layui-tab-content">
+                        <form class="layui-form">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">
+                                系统名称
+                            </label>
+                            <div class="layui-input-inline" style="width:300px;">
+                                <input type="text" name="sys_name" value="{$sys_name}" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">
+                                系统网址
+                            </label>
+                            <div class="layui-input-inline" style="width:300px;">
+                                <input type="text" name="sys_url" value="{$sys_url}" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">
+                                系统LOGO
+                            </label>
+                            <div class="layui-input-block">
+                                <div class="layui-upload">
+                                  <button type="button" class="layui-btn" id="upload_pic">上传图片</button>
+                                  <div class="layui-upload-list" id="upload_pic_list">
+                                    <?php if($sys_logo){ ?>
+                                    <p class="upload_pic"><a href="{$sys_logo}" target="_blank"><img class="upload_img" src="{$sys_logo}"></a><a class="uploda_del" onClick="return upload_del(this);"></a><input type="hidden" name="sys_logo" value="{$sys_logo}"></p>
+                                    <?php } ?>
+                                  </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">
+                                关于洛图
+                            </label>
+                            <div class="layui-input-block">
+                                <textarea id="content" name="sys_about">{:htmlspecialchars_decode(stripslashes($sys_about))}</textarea>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label for="L_repass" class="layui-form-label">
+                            </label>
+                            <button  class="layui-btn" lay-filter="add" lay-submit="">
+                                保存
+                            </button>
+                        </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    //实例化编辑器
+    //建议使用工厂方法getEditor创建和引用编辑器实例，如果在某个闭包下引用该编辑器，直接调用UE.getEditor('editor')就能拿到相关的实例
+    UE.getEditor('content',{initialFrameWidth:730,initialFrameHeight:400,autoFloatEnabled:false,autoHeightEnabled: false, zIndex: 100});
+</script>
+<script>
+    layui.use(['layer','form','upload','element'], function(){
+        var  $ = layui.jquery;//jquery
+        var layer = layui.layer;//弹出层
+        var form = layui.form;
+        var upload = layui.upload;
+		var element=layui.element;
+		element.render();
+		
+		var loadingIndex;
+		//执行实例
+		var uploadInst = upload.render({
+		  elem: '#upload_pic'
+		  ,url: "{:U('Ajax/uploadimg')}" //改成您自己的上传接口
+		  ,method: 'post'
+		  ,before:function(obj){
+			  loadingIndex = layer.load(1, {
+				  shade: [0.5,'#000'] //0.1透明度的背景
+			  });
+		  }
+		  ,done: function(res){
+			  layer.close(loadingIndex);
+			  //如果上传失败
+			  if(res.code > 0){
+				  return layer.msg(res.msg);
+			  }else{
+				  //上传成功
+				  var html='<p class="upload_pic"><a href="'+res.src+'" target="_blank"><img class="upload_img" src="'+res.src+'"></a><a class="uploda_del" onClick="return upload_del(this);"></a><input type="hidden" name="sys_logo" value="'+res.src+'"></p>';
+				  $('#upload_pic_list').append(html);
+			  }
+		  }
+		});
+		
+        //监听提交
+		form.on('submit(add)',function(data) {
+			var data = data.field;
+			$.ajax({
+				type:"post",
+				url:"{:U('Setting/doindex')}",
+				data:data,
+				dataType:"json",
+				success:function(data){
+					if(data.status==1){
+						layer.msg(data.info, {icon: 6,time:1000},function () {
+							window.location.reload();
+						});
+						return false;
+					}else{
+						layer.msg(data.info,{icon:5,time:1000});return false;
+					}
+				}
+
+			});
+			return false;
+		});
+
+    });
+</script>
+</html>

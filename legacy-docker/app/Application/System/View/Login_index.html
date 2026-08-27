@@ -1,0 +1,56 @@
+<include file="Public:header"/>
+<link rel="stylesheet" href="/Public/css/login.css?<?php echo rand(); ?>">
+<body class="login-bg">
+    
+    <div class="login layui-anim layui-anim-up">
+        <div class="message"><img src="/Public/images/logo_title.png"></div>
+        <form class="layui-form" >
+            <input name="username" placeholder="请输入用户名"  type="text" lay-verify="required" class="layui-input yhm" autocomplete="off">
+            <hr class="hr20">
+            <input name="password" lay-verify="required" placeholder="请输入密码"  type="password" class="layui-input mm" autocomplete="off">
+            <hr class="hr20">
+            <input name="verify" lay-verify="required" placeholder="请输入验证码"  type="text" class="layui-input yzm" autocomplete="off">
+            <a href="javascript:void(0);" title="看不清？点击换一个" class="veritytu"><img src="/Public/code_math.php" width="105" height="40" onClick="this.src=this.src+'?'+Math.random();"/></a>
+            <hr class="hr20">
+            <input value="立即登录" lay-submit="" lay-filter="login" style="width:100%;" type="submit">
+            <hr class="hr20">
+        </form>
+    </div>
+
+    <script>
+        $(function  () {
+            layui.use('form', function(){
+              $ = layui.jquery;
+              var form = layui.form,
+              layer = layui.layer;
+              //监听提交
+              form.on('submit(login)', function(data){
+                var data = data.field;
+                console.log(data);
+                $.ajax({
+                    type:"post",
+                    url:"/System/Login/dologin",
+                    data:data,
+                    dataType:"json",
+                    success:function(data){
+                        if(data.status==1){
+                            layer.msg(data.info, {icon: 6,time:1000},function () {
+                                location.href="/System/Index/index";
+                            });
+                            return false;
+                        }else{
+                            layer.msg(data.info,{icon:5,time:1000});return false;
+                        }
+                    },
+                    error:function(){
+                        layer.msg('登录请求失败，请刷新后重试',{icon:5,time:1500});return false;
+                    }
+                });
+                return false;
+              });
+            });
+        })
+    </script>
+    <!-- 底部结束 -->
+</body>
+</html>

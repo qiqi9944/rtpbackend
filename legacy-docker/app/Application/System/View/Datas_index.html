@@ -1,0 +1,196 @@
+<include file="Public:header"/>
+<body>
+<div class="x-nav">
+          <span class="layui-breadcrumb">
+            <a href="">首页</a>
+            <a><cite>数据管理</cite></a>
+          </span>
+    <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onClick="location.reload()" title="刷新">
+        <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i></a>
+</div>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body ">
+                    <form class="layui-form layui-col-space5">
+                        <div class="layui-inline layui-show-xs-block" style="width:120px;">
+                            <select name="sel_lb">
+                            <option value="0">类别</option>
+                            <volist name="arr_datascate1" id="v">
+                            <option value="{$key}"<?php if($sel_lb==$key){ ?> selected="selected"<?php } ?>>{$v}</option>
+                            </volist>
+                            </select>
+                        </div>
+                        <div class="layui-inline layui-show-xs-block">
+                            <button class="layui-btn"  lay-submit="" lay-filter="sreach"><i class="layui-icon">&#xe615;</i></button>
+                        </div>
+                        <div class="layui-inline layui-show-xs-block index_counts">
+                            <p class="counts">共<span>{$count}</span>条信息</p>
+                        </div>
+                    </form>
+                </div>
+                <div class="layui-card-body layui-table-body layui-table-main">
+                    <table class="layui-table layui-form">
+                        <thead>
+                        <tr>
+                            <th width="150">产品类别</th>
+                            <th width="150">产品名称</th>
+                            <th width="150">产品细分</th>
+                            <th width="">数据条数</th>
+                            <th width="200">最新数据日期</th>
+                            <?php if(1==2){ ?>
+                            <th width="100">数据维度</th>
+                            <?php } ?>
+                            <th width="100">导入</th>
+                            <th width="100">查看</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <volist name="datalist" id="v">
+                            <?php if($v['cate2']){ ?>
+                                <volist name="v['cate2']" id="cv">
+                                    <?php $k=$key; ?>
+                                    <tr>
+                                        <?php if($v['row'] && $k==2){ ?>
+                                        <td rowspan="{$v['row']}">{$v['catename']}</td>
+                                        <?php } ?>
+                                        <?php if($k==2 || $k==4 || $k==7 || $k==9 || $k==12){ ?>
+                                        <td rowspan="{$v['row2']}">{$v['name']}</td>
+                                        <?php } ?>
+                                        <td>{$cv}</td>
+                                        <td>{$v['num'][$k]}</td>
+                                        <td>
+                                        <?php if($v['sjrq'][$k]){ ?>
+                                        <div style="width:100px; float:left;">
+                                        <select id="sjrq{$v['id']}{$k}">
+                                            <volist name="v['sjrq'][$k]" id="dv"><option value="{$dv['id']}">{$dv['name']}</option></volist>
+                                            <option value="全部">全部</option>
+                                        </select>
+                                        </div>
+                                        <a href="javascript:;" onClick="member_qk(this,'{$v['id']}','{$k}')" style="margin-left:10px; display:inline-block; line-height:30px;">(清空数据>>)</a>
+                                        <?php } ?>
+                                        
+                                        </td>
+                                        <?php if(1==2){ ?>
+                                        <?php if($k==2 || $k==4 || $k==7){ ?>
+                                        <td class="td-manage" rowspan="{$v['row2']}">
+                                            <a title="数据维度" href="javascript:;" onClick="xadmin.open('{$v[catename]} - {$v[name]} - {$cv}','{:U('Datas/html',array('id'=>$v['id']))}','800')"
+                                               class="ml-5" style="text-decoration:none">
+                                                <i class="layui-icon">&#xe642;</i>
+                                            </a>
+                                        </td>
+                                        <?php } ?>
+                                        <?php } ?>
+                                        <td class="td-manage">
+                                            <a title="导入" href="javascript:;" onClick="xadmin.open('导入{$v[catename]} - {$v[name]} - {$cv}','{:U('Datas/excel',array('id'=>$v['id'],'type'=>$k))}','800','350')"
+                                               class="ml-5" style="text-decoration:none">
+                                                <i class="layui-icon">&#xe681;</i>
+                                            </a>
+                                        </td>
+                                        <td class="td-manage">
+                                            <a title="查看" href="javascript:;" onClick="xadmin.open('{$v[catename]} - {$v[name]} - {$cv}','{:U('Datas/lists',array('id'=>$v['id'],'type'=>$k))}')"
+                                               class="ml-5" style="text-decoration:none; margin-right:10px;">
+                                                <i class="layui-icon">&#xe62d;</i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </volist>
+                            <?php }else{ ?>
+                                    <tr>
+                                        <?php if($v['row']){ ?>
+                                        <td rowspan="{$v['row']}">{$v['catename']}</td>
+                                        <?php } ?>
+                                        <td>{$v['name']}</td>
+                                        <td></td>
+                                        <td>{$v['num']}</td>
+                                        <td>
+                                        <?php if($v['sjrq']){ ?>
+                                        <div style="width:100px; float:left;">
+                                        <select id="sjrq{$v['id']}">
+                                            <volist name="v['sjrq']" id="dv"><option value="{$dv['id']}">{$dv['name']}</option></volist>
+                                            <option value="全部">全部</option>
+                                        </select>
+                                        </div>
+                                        <a href="javascript:;" onClick="member_qk(this,'{$v['id']}')" style="margin-left:10px; display:inline-block; line-height:30px;">(清空数据>>)</a>
+                                        <?php } ?>
+                                        </td>
+                                        <?php if(1==2){ ?>
+                                        <td class="td-manage">
+                                            <a title="数据维度" href="javascript:;" onClick="xadmin.open('{$v[catename]} - {$v[name]} - {$cv}','{:U('Datas/html',array('id'=>$v['id']))}','800')"
+                                               class="ml-5" style="text-decoration:none">
+                                                <i class="layui-icon">&#xe642;</i>
+                                            </a>
+                                        </td>
+                                        <?php } ?>
+                                        <td class="td-manage">
+                                            <a title="导入" href="javascript:;" onClick="xadmin.open('导入{$v[catename]} - {$v[name]}','{:U('Datas/excel',array('id'=>$v['id']))}','800','350')"
+                                               class="ml-5" style="text-decoration:none">
+                                                <i class="layui-icon">&#xe681;</i>
+                                            </a>
+                                        </td>
+                                        <td class="td-manage">
+                                            <a title="查看" href="javascript:;" onClick="xadmin.open('{$v[catename]} - {$v[name]}','{:U('Datas/lists',array('id'=>$v['id']))}')"
+                                               class="ml-5" style="text-decoration:none; margin-right:10px;">
+                                                <i class="layui-icon">&#xe62d;</i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                            <?php } ?>
+                        </volist>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="layui-card-body ">
+                    <div class="page">
+                        {$page}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+	layui.use(['layer','form','element'], function(){
+        var layer = layui.layer;
+        var form = layui.form;
+        var element = layui.element;
+		element.render();
+    });
+	/*用户-删除*/
+    function member_qk(obj,id,type){
+		if(type){
+			var yd=$("#sjrq"+id+type).val();
+		}else{
+			var yd=$("#sjrq"+id).val();
+		}
+		
+        layer.confirm('确认要清空当前数据吗，清空后无法恢复，请谨慎操作？',function(index){
+            //发异步删除数据
+			$.ajax({
+				type:'POST',
+				url:"{:U('Datas/qk')}",
+				data:{
+					id: id,
+					type: type,
+					yd: yd
+				},
+				success:function (data) {
+					if(data.status ==1){
+						layer.msg(data.info, {icon: 6,time:1000},function () {
+							window.parent.location.reload();
+						});
+					}else{
+						layer.msg(data.info,{icon: 5,time:1000});
+					}
+				}
+			});
+			return false;
+        });
+    }
+
+</script>
+</html>

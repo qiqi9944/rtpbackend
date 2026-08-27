@@ -1,0 +1,56 @@
+services:
+  legacy-mysql:
+    image: mysql:5.7
+    container_name: luotu-legacy-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: legacyRoot123
+      MYSQL_DATABASE: luotu
+      MYSQL_USER: luotu
+      MYSQL_PASSWORD: luotu123
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+      - --max_allowed_packet=512M
+      - --sql-mode=NO_ENGINE_SUBSTITUTION
+    volumes:
+      - legacy_mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+      - ./mysql/conf.d:/etc/mysql/conf.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uluotu", "-pluotu123"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  legacy-php-fpm:
+    build:
+      context: ./php
+    container_name: luotu-legacy-php-fpm
+    restart: unless-stopped
+    volumes:
+      - ./app:/var/www/html
+      - ./app/Application/Runtime:/var/www/html/Application/Runtime
+      - ./app/Uploads:/var/www/html/Uploads
+    command: sh -c "chown -R www-data:www-data /var/www/html/Application/Runtime /var/www/html/Uploads && php-fpm"
+    depends_on:
+      legacy-mysql:
+        condition: service_healthy
+
+  legacy-nginx:
+    image: nginx:1.25-alpine
+    container_name: luotu-legacy-nginx
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    volumes:
+      - ./app:/var/www/html:ro
+      - ./app/Application/Runtime:/var/www/html/Application/Runtime:ro
+      - ./app/Uploads:/var/www/html/Uploads:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - legacy-php-fpm
+
+volumes:
+  legacy_mysql_data:
