@@ -3991,6 +3991,73 @@ class WxapiController extends Controller {
 					$arr['y']=$arry;
 					$return_data['arr_sj3']=$arr;
 				}
+				//品牌竞争表格：市占率/市占率增减/平均价格/均价变化
+				$arr_sj8=array();
+				$brand_now=array();
+				$brand_last=array();
+				$has_xe=in_array($sel_ds,array(5,8,10,12));
+				if($sel_ds!=6 && $sel_ds!=10 && $sel_ds!=11 && !($sel_xl==2 && !$has_xe)){
+					if($sel_ds==1 || $sel_ds==5 || $sel_ds==8 || $sel_ds==9 || $sel_ds==12){
+						$brand_field='gy1';
+					}elseif($sel_ds==2 || $sel_ds==4){
+						$brand_field='odm';
+					}else{
+						$brand_field='gy2';
+					}
+					foreach($datalist as $v){
+						if(empty($v[$brand_field]) || strtolower($v[$brand_field])=='others'){continue;}
+						$ch=$v['ch'];
+						if($v['type2']==11){$ch=$ch/1000;}
+						if(!isset($brand_now[$v[$brand_field]])){$brand_now[$v[$brand_field]]=array('ch'=>0,'xe'=>0);}
+						$brand_now[$v[$brand_field]]['ch']+=$ch;
+						$brand_now[$v[$brand_field]]['xe']+=$v['xe'];
+					}
+					foreach($lastdata as $v){
+						if(empty($v[$brand_field]) || strtolower($v[$brand_field])=='others'){continue;}
+						$ch=$v['ch'];
+						if($v['type2']==11){$ch=$ch/1000;}
+						if(!isset($brand_last[$v[$brand_field]])){$brand_last[$v[$brand_field]]=array('ch'=>0,'xe'=>0);}
+						$brand_last[$v[$brand_field]]['ch']+=$ch;
+						$brand_last[$v[$brand_field]]['xe']+=$v['xe'];
+					}
+					foreach($brand_now as $k=>$v){
+						$bn=$v['ch'];$be=$v['xe'];
+						$ln=isset($brand_last[$k])?$brand_last[$k]['ch']:0;
+						$le=isset($brand_last[$k])?$brand_last[$k]['xe']:0;
+						if($sel_xl==2 && $has_xe){
+							$share_now=!empty($xe)?($be/$xe)*100:0;
+							$share_last=!empty($lastxe)?($le/$lastxe)*100:0;
+						}else{
+							$share_now=!empty($xl)?($bn/$xl)*100:0;
+							$share_last=!empty($lastxl)?($ln/$lastxl)*100:0;
+						}
+						$share_c=$share_now-$share_last;
+						$arr=array();
+						$arr['name']=$k;
+						$arr['share']=round($share_now,1);
+						$arr['share_c']=($share_c>=0?'+':'').round($share_c,1);
+						if($has_xe){
+							$price_now=!empty($bn)?$be/$bn:0;
+							$price_last=!empty($ln)?$le/$ln:0;
+							$price_c=!empty($price_last)?(($price_now-$price_last)/$price_last)*100:0;
+							$arr['price']=round($price_now,0);
+							$arr['price_c']=($price_c>=0?'+':'').round($price_c,0);
+						}else{
+							$arr['price']='--';
+							$arr['price_c']='--';
+						}
+						$arr_sj8[]=$arr;
+					}
+					usort($arr_sj8,function($a,$b){return $b['share']-$a['share'];});
+					//非会员品牌匿名：份额排名>3 显示 品牌N
+					if($user['huiyuan']!=1){
+						foreach($arr_sj8 as $rk=>$rv){
+							$rank=$rk+1;
+							if($rank>3){$arr_sj8[$rk]['name']='品牌'.$rank;}
+						}
+					}
+				}
+				$return_data['arr_sj8']=$arr_sj8;
 				//产品结构变化
 				//1技术2Domestic/Overseas 3尺寸段
 				$arr_sj4=array();
