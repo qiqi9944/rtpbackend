@@ -2873,6 +2873,15 @@ class WxapiController extends Controller {
 					$arr_sj5[$v['gy2']]=$arr_sj5[$v['gy2']]+$v['xe'];
 				}	
 			}
+			//价格段同比（市占率增减）
+			$arr_sj5_last=array();
+			foreach($lastdata as $k=>$v){
+				if($sel_xl==1){
+					$arr_sj5_last[$v['gy2']]=$arr_sj5_last[$v['gy2']]+$v['xl'];
+				}elseif($sel_xl==2){
+					$arr_sj5_last[$v['gy2']]=$arr_sj5_last[$v['gy2']]+$v['xe'];
+				}
+			}
 				
 			if($type!=3 && $type!=13){
 				arsort($arr_sj4);
@@ -2907,6 +2916,17 @@ class WxapiController extends Controller {
 				}else{
 					$arr['name']=$k;
 				}
+				//价格段市占率增减（同比）
+				$last_v=isset($arr_sj5_last[$k])?$arr_sj5_last[$k]:0;
+				if($sel_xl==1){
+					$cur_share=!empty($xl)?($v/$xl)*100:0;
+					$last_share=!empty($lastxl)?($last_v/$lastxl)*100:0;
+				}else{
+					$cur_share=!empty($xe)?($v/$xe)*100:0;
+					$last_share=!empty($lastxe)?($last_v/$lastxe)*100:0;
+				}
+				$share_c=$cur_share-$last_share;
+				$arr['t3']=($share_c>=0?'+':'').round($share_c,1).'%';
 				$arr_sjs5[]=$arr;
 			}
 			$return_data['arr_sj5']=$arr_sjs5;
@@ -3370,6 +3390,17 @@ class WxapiController extends Controller {
 					$arr_sj5[$v['chcd']]=$arr_sj5[$v['chcd']]+$v['xse'];
 				}	
 			}
+			//价格段同比（市占率增减）
+			$arr_sj5_last=array();
+			foreach($lastdata as $k=>$v){
+				if($sel_xl==1){
+					if($type==7 || $type==18){$v['chl']=$v['chl']/1000;}
+					$arr_sj5_last[$v['chcd']]=$arr_sj5_last[$v['chcd']]+$v['chl'];
+				}elseif($sel_xl==2){
+					if($type==7 || $type==18){$v['xse']=$v['xse']/100;}
+					$arr_sj5_last[$v['chcd']]=$arr_sj5_last[$v['chcd']]+$v['xse'];
+				}
+			}
 			if($type==5){//用第二个表
 			    $datalist2=M('shuju_pid')->where("type='$type' AND type2=2".$sql.$sqlds)->order('nd DESC,jd DESC,id DESC')->select();
 				$arr_sj4=array();
@@ -3412,6 +3443,17 @@ class WxapiController extends Controller {
 					}else{
 						$arr['name']=$k;
 					}
+					//价格段市占率增减（同比）
+					$last_v=isset($arr_sj5_last[$k])?$arr_sj5_last[$k]:0;
+					if($sel_xl==1){
+						$cur_share=!empty($xl)?($v/$xl)*100:0;
+						$last_share=!empty($lastxl)?($last_v/$lastxl)*100:0;
+					}else{
+						$cur_share=!empty($xe)?($v/$xe)*100:0;
+						$last_share=!empty($lastxe)?($last_v/$lastxe)*100:0;
+					}
+					$share_c=$cur_share-$last_share;
+					$arr['t3']=($share_c>=0?'+':'').round($share_c,1).'%';
 					$arr_sjs5[]=$arr;
 				}
 				$return_data['arr_sj5']=$arr_sjs5;
@@ -4097,6 +4139,23 @@ class WxapiController extends Controller {
 						}*/
 					}	
 				}
+				//尺寸段同比（市占率增减）
+				$arr_sj5_last=array();
+				foreach($lastdata as $k=>$v){
+					$ch=$v['ch'];
+					if($v['type2']==11){$ch=$ch/1000;}
+					if($sel_xl==1){
+						if($sel_ds==1){
+							$arr_sj5_last[$v['gy2']]=$arr_sj5_last[$v['gy2']]+$ch;
+						}elseif($sel_ds==2 || $sel_ds==8 || $sel_ds==12){
+							$arr_sj5_last[$v['chc']]=$arr_sj5_last[$v['chc']]+$ch;
+						}
+					}elseif($sel_xl==2){
+						if($sel_ds==8 || $sel_ds==12){
+							$arr_sj5_last[$v['chc']]=$arr_sj5_last[$v['chc']]+$v['xe'];
+						}
+					}
+				}
 				arsort($arr_sj4);
 				$arr_sjs4=array();
 				foreach($arr_sj4 as $k=>$v){
@@ -4154,15 +4213,49 @@ class WxapiController extends Controller {
 						}else{
 							$arr['name']=str_replace('"','',$k).'"';
 						}
+						//尺寸段市占率增减（同比）
+						$last_v=isset($arr_sj5_last[$k])?$arr_sj5_last[$k]:0;
+						if($sel_xl==1){
+							$cur_share=!empty($xl)?($v/$xl)*100:0;
+							$last_share=!empty($lastxl)?($last_v/$lastxl)*100:0;
+						}else{
+							$cur_share=!empty($xe)?($v/$xe)*100:0;
+							$last_share=!empty($lastxe)?($last_v/$lastxe)*100:0;
+						}
+						$share_c=$cur_share-$last_share;
+						$arr['t3']=($share_c>=0?'+':'').round($share_c,1).'%';
 						$arr_sjs5[]=$arr;
 					}
 				}
 				if($sel_ds==2){
 					arsort($arr_chcd);
+					$arr_chcd_last=array();
+					foreach($arr_sj5_last as $k=>$v){
+						$val=$v/10;
+						if($k<32){
+							$arr_chcd_last['32-"']=$arr_chcd_last['32-"']+$val;
+						}elseif($k >= 35 && $k <= 40){
+							$arr_chcd_last['35-40"']=$arr_chcd_last['35-40"']+$val;
+						}elseif($k >= 41 && $k <= 45){
+							$arr_chcd_last['41-45"']=$arr_chcd_last['41-45"']+$val;
+						}elseif($k >= 46 && $k <= 50){
+							$arr_chcd_last['46-50"']=$arr_chcd_last['46-50"']+$val;
+						}elseif($k > 75){
+							$arr_chcd_last['75+"']=$arr_chcd_last['75+"']+$val;
+						}else{
+							$arr_chcd_last[$k.'"']=$val;
+						}
+					}
 					foreach($arr_chcd as $k=>$v){
 						$arr=array();
 						$arr['value']=$v;
 						$arr['name']=$k;
+						//尺寸段市占率增减（同比）
+						$last_v=isset($arr_chcd_last[$k])?$arr_chcd_last[$k]:0;
+						$cur_share=!empty($xl)?($v*10/$xl)*100:0;
+						$last_share=!empty($lastxl)?($last_v*10/$lastxl)*100:0;
+						$share_c=$cur_share-$last_share;
+						$arr['t3']=($share_c>=0?'+':'').round($share_c,1).'%';
 						$arr_sjs5[]=$arr;
 					}
 				}
