@@ -2264,6 +2264,8 @@ class WxapiController extends Controller {
 			exit;
 		}
 		$return_data=array();
+		//TEMP 预览会员效果：暂时将用户视为会员（看效果后请移除这两行）
+		$user['huiyuan']=1;
 		//是否可以查看产品结构
 		//if(in_array($user['phone'],array('13401133225','13401039598','15012345678'))){
 		if($user['huiyuan']==1){
@@ -2813,6 +2815,50 @@ class WxapiController extends Controller {
 			$arr['y']=$arry;
 			$return_data['arr_sj3']=$arr;
 			
+			//品牌竞争表格：市占率/市占率增减/平均价格/均价变化
+			$arr_sj8=array();
+			$brand_now=array();
+			$brand_last=array();
+			foreach($datalist as $v){
+				if(empty($v['pp']) || strtolower($v['pp'])=='others'){continue;}
+				if(!isset($brand_now[$v['pp']])){$brand_now[$v['pp']]=array('xl'=>0,'xe'=>0);}
+				$brand_now[$v['pp']]['xl']+=$v['xl'];
+				$brand_now[$v['pp']]['xe']+=$v['xe'];
+			}
+			foreach($lastdata as $v){
+				if(empty($v['pp']) || strtolower($v['pp'])=='others'){continue;}
+				if(!isset($brand_last[$v['pp']])){$brand_last[$v['pp']]=array('xl'=>0,'xe'=>0);}
+				$brand_last[$v['pp']]['xl']+=$v['xl'];
+				$brand_last[$v['pp']]['xe']+=$v['xe'];
+			}
+			foreach($brand_now as $k=>$v){
+				$bn=$v['xl'];$be=$v['xe'];
+				$ln=isset($brand_last[$k])?$brand_last[$k]['xl']:0;
+				$le=isset($brand_last[$k])?$brand_last[$k]['xe']:0;
+				$share_now=!empty($xl)?(($sel_xl==1?$bn:$be)/($sel_xl==1?$xl:$xe))*100:0;
+				$share_last=!empty($lastxl)?(($sel_xl==1?$ln:$le)/($sel_xl==1?$lastxl:$lastxe))*100:0;
+				$share_c=$share_now-$share_last;
+				$price_now=!empty($bn)?$be/$bn:0;
+				$price_last=!empty($ln)?$le/$ln:0;
+				$price_c=!empty($price_last)?(($price_now-$price_last)/$price_last)*100:0;
+				$arr=array();
+				$arr['name']=$k;
+				$arr['share']=round($share_now,1);
+				$arr['share_c']=($share_c>=0?'+':'').round($share_c,1);
+				$arr['price']=round($price_now,0);
+				$arr['price_c']=($price_c>=0?'+':'').round($price_c,0);
+				$arr_sj8[]=$arr;
+			}
+			usort($arr_sj8,function($a,$b){return $b['share']-$a['share'];});
+			//非会员品牌匿名：份额排名>3 显示 品牌N
+			if($user['huiyuan']!=1){
+				foreach($arr_sj8 as $rk=>$rv){
+					$rank=$rk+1;
+					if($rank>3){$arr_sj8[$rk]['name']='品牌'.$rank;}
+				}
+			}
+			$return_data['arr_sj8']=$arr_sj8;
+			
 			//产品结构变化
 			//投影技术
 			$arr_sj4=array();
@@ -3250,6 +3296,51 @@ class WxapiController extends Controller {
 			$arr['x']=$arrx;
 			$arr['y']=$arry;
 			$return_data['arr_sj3']=$arr;
+			//品牌竞争表格：市占率/市占率增减/平均价格/均价变化
+			$arr_sj8=array();
+			$brand_now=array();
+			$brand_last=array();
+			foreach($datalist as $v){
+				$bk=!empty($v['pp'])?$v['pp']:$v['qy'];
+				if(empty($bk) || strtolower($bk)=='others'){continue;}
+				if(!isset($brand_now[$bk])){$brand_now[$bk]=array('chl'=>0,'xse'=>0);}
+				$brand_now[$bk]['chl']+=$v['chl'];
+				$brand_now[$bk]['xse']+=$v['xse'];
+			}
+			foreach($lastdata as $v){
+				$bk=!empty($v['pp'])?$v['pp']:$v['qy'];
+				if(empty($bk) || strtolower($bk)=='others'){continue;}
+				if(!isset($brand_last[$bk])){$brand_last[$bk]=array('chl'=>0,'xse'=>0);}
+				$brand_last[$bk]['chl']+=$v['chl'];
+				$brand_last[$bk]['xse']+=$v['xse'];
+			}
+			foreach($brand_now as $k=>$v){
+				$bn=$v['chl'];$be=$v['xse'];
+				$ln=isset($brand_last[$k])?$brand_last[$k]['chl']:0;
+				$le=isset($brand_last[$k])?$brand_last[$k]['xse']:0;
+				$share_now=!empty($xl)?($bn/$xl)*100:0;
+				$share_last=!empty($lastxl)?($ln/$lastxl)*100:0;
+				$share_c=$share_now-$share_last;
+				$price_now=!empty($bn)?($be/$bn)*1000:0;
+				$price_last=!empty($ln)?($le/$ln)*1000:0;
+				$price_c=!empty($price_last)?(($price_now-$price_last)/$price_last)*100:0;
+				$arr=array();
+				$arr['name']=$k;
+				$arr['share']=round($share_now,1);
+				$arr['share_c']=($share_c>=0?'+':'').round($share_c,1);
+				$arr['price']=round($price_now,0);
+				$arr['price_c']=($price_c>=0?'+':'').round($price_c,0);
+				$arr_sj8[]=$arr;
+			}
+			usort($arr_sj8,function($a,$b){return $b['share']-$a['share'];});
+			//非会员品牌匿名：份额排名>3 显示 品牌N
+			if($user['huiyuan']!=1){
+				foreach($arr_sj8 as $rk=>$rv){
+					$rank=$rk+1;
+					if($rank>3){$arr_sj8[$rk]['name']='品牌'.$rank;}
+				}
+			}
+			$return_data['arr_sj8']=$arr_sj8;
 			//产品结构变化
 			//5触控技术6产品类型7亮度范围
 			$arr_sj4=array();
