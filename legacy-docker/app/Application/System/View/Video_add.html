@@ -1,0 +1,128 @@
+<include file="Public:header"/>
+<body>
+<div class="layui-card">
+    <form class="layui-form layui-form-pane">
+        <input type="hidden" name="id" value="{$data['id']}">
+        <div class="layui-form-item">
+            <label class="layui-form-label">
+                <span class='x-red'>*</span>视频标题
+            </label>
+            <div class="layui-input-block">
+                <input type="text" name="name" autocomplete="off" value="{$data['name']}" lay-verify="required" class="layui-input" placeholder="请输入视频标题">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">
+                <span class='x-red'>*</span>视频地址
+            </label>
+            <div class="layui-input-block">
+                <input type="text" name="url" autocomplete="off" value="{$data['url']}" lay-verify="required" class="layui-input" placeholder="请输入可直接播放的视频 URL（如 mp4 链接）">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">
+                <span class='x-red'>*</span>封面图
+            </label>
+            <div class="layui-input-block">
+                <div class="layui-upload">
+                  <button type="button" class="layui-btn" id="upload_pic1">上传图片</button><span>（建议尺寸：4:3 或 16:9）</span>
+                  <div class="layui-upload-list" id="upload_pic_list1">
+                    <?php if($data['pic']){ ?>
+                    <p class="upload_pic"><a href="{$data['pic']}" target="_blank"><img class="upload_img" src="{$data['pic']}"></a><a class="uploda_del" onClick="return upload_del(this);"></a><input type="hidden" name="pic" value="{$data['pic']}"></p>
+                    <?php } ?>
+                  </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">
+                视频描述
+            </label>
+            <div class="layui-input-block">
+                <textarea name="description" placeholder="请输入视频描述，可换行、多行展示" class="layui-textarea" style="height:120px;">{$data['description']}</textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">
+                推荐度
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" name="displayorder" autocomplete="off" value="{$data['displayorder']}" class="layui-input" placeholder="数值越大越靠前">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">
+                <span class='x-red'>*</span>是否显示
+            </label>
+            <div class="layui-input-block">
+                <input type="radio" name="isrecommand" value="1" title="是" <?php if($data['isrecommand']==1 || !$data['id']){ ?>checked="checked"<?php } ?>>
+                <input type="radio" name="isrecommand" value="0" title="否" <?php if($data['isrecommand']==0 && $data['id']){ ?>checked="checked"<?php } ?>>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <button class="layui-btn" type="button" lay-filter="add" lay-submit="">
+                保存
+            </button>
+        </div>
+    </form>
+</div>
+<script>
+    layui.use(['form', 'layer','upload'],
+		function() {
+			$ = layui.jquery;
+			var form = layui.form,
+			layer = layui.layer;
+            var upload = layui.upload;
+
+			var loadingIndex;
+            var uploadInst = upload.render({
+			  elem: '#upload_pic1'
+			  ,url: "{:U('Ajax/uploadimg')}" //改成您自己的上传接口
+			  ,method: 'post'
+			  ,before:function(obj){
+				  loadingIndex = layer.load(1, {
+					  shade: [0.5,'#000'] //0.1透明度的背景
+				  });
+			  }
+			  ,done: function(res){
+				  layer.close(loadingIndex);
+				  //如果上传失败
+				  if(res.code > 0){
+					  return layer.msg(res.msg);
+				  }else{
+					  //上传成功
+					  var html='<p class="upload_pic"><a href="'+res.src+'" target="_blank"><img class="upload_img" src="'+res.src+'"></a><a class="uploda_del" onClick="return upload_del(this);"></a><input type="hidden" name="pic" value="'+res.src+'"></p>';
+					  $('#upload_pic_list1').html(html);
+				  }
+			  }
+			});
+			//监听提交
+			form.on('submit(add)',function(data) {
+				var data = data.field;
+				$.ajax({
+					type:"post",
+					url:"{:U('Video/doadd')}",
+					data:data,
+					dataType:"json",
+					success:function(data){
+						if(data.status==1){
+							layer.msg(data.info, {icon: 6,time:1000},function () {
+								var index = parent.layer.getFrameIndex(window.name);
+								parent.layer.close(index);
+								window.parent.location.reload();
+							});
+							return false;
+						}else{
+							layer.msg(data.info,{icon:5,time:1000});return false;
+						}
+					}
+
+				});
+				return false;
+			});
+
+		});
+</script>
+
+</body>
+</html>

@@ -271,6 +271,12 @@ class WxapiController extends Controller {
 		return M('shuju_iot')->where("type='$type' AND (yd='$a' OR yd='$b')".$flt)->select();
 	}
 
+	//图表变化率；无可比基数时返回 null，让折线在该点断开
+	protected function chartRate($current,$previous){
+		if(empty($previous)){return null;}
+		return round((($current-$previous)/$previous)*100,1);
+	}
+
 	//shuju_tvs 表：某 type(+type2) 在指定年份的最新一期行（可能 jd 或 yd），跨年份则为该类型全局最新一期
 	protected function tvsLatestOfYear($type,$year,$type2=0){
 		$pre="type='$type'";
@@ -887,6 +893,43 @@ class WxapiController extends Controller {
 		}
 		$return_data['status'] = 1;
 		$return_data['datalist'] = $datalist;
+		echo json_encode($return_data);
+	}
+	//观研-小视频列表（url + 封面 + 多行描述）
+	public function getvideo(){
+		$p=I('p','',intval);//分页
+		$page=$p?$p:1;
+		$lm=12;
+		$limit=($page-1)*$lm;
+		$sql="isrecommand=1";
+		$datalist = M('video')->where($sql)->field('id,name,url,pic,description,addtime')->order("displayorder DESC,id DESC")->limit($limit,$lm)->select();
+		foreach($datalist as $k=>$v){
+			$v['addtime']=date('Y-m-d',$v['addtime']);
+			if($v['pic']){
+				$v['pic']=C('SITEURL').$v['pic'];
+			}
+			$datalist[$k]=$v;
+		}
+		$return_data=array();
+		//是否为最后一页
+		$count=M('video')->where($sql)->count();
+		if($count <= ($limit+$lm)){
+			$return_data['lastpage']=1;
+		}else{
+			$return_data['lastpage']=0;
+		}
+		$return_data['status'] = 1;
+		$return_data['datalist'] = $datalist;
+		echo json_encode($return_data);
+	}
+	//观研-小视频播放量+1
+	public function getvideoclick(){
+		$id=I('id','',intval);
+		if($id){
+			M('video')->where("id='$id'")->setInc('click');
+		}
+		$return_data=array();
+		$return_data['status'] = 1;
 		echo json_encode($return_data);
 	}
 	//新闻详情页
@@ -2691,13 +2734,21 @@ class WxapiController extends Controller {
 						$month=date('y.m',$aa);
 					}
 					$arr=array();
-					if($sel_xl==1){
-						$arr['num']=M('shuju_iot')->where("type='$type' AND yd='$month'".$sqlds)->sum('xl');
-					    $arr['num']=round(($arr['num']/10000),1);
-					}elseif($sel_xl==2){
-						$arr['num']=M('shuju_iot')->where("type='$type' AND yd='$month'".$sqlds)->sum('xe');
-					    $arr['num']=round(($arr['num']/100000000),1);
-					}
+					$chart_xl=0;$chart_xe=0;$year_xl=0;$year_xe=0;$prev_xl=0;$prev_xe=0;
+					foreach($this->qiot($type,$aa,$sqlds) as $row){$chart_xl+=$row['xl'];$chart_xe+=$row['xe'];}
+					foreach($this->qiot($type,strtotime('-1 year',$aa),$sqlds) as $row){$year_xl+=$row['xl'];$year_xe+=$row['xe'];}
+					foreach($this->qiot($type,strtotime('-1 month',$aa),$sqlds) as $row){$prev_xl+=$row['xl'];$prev_xe+=$row['xe'];}
+					$chart_value=($sel_xl==1)?$chart_xl:$chart_xe;
+					$year_value=($sel_xl==1)?$year_xl:$year_xe;
+					$prev_value=($sel_xl==1)?$prev_xl:$prev_xe;
+					$arr['num']=round(($chart_value/($sel_xl==1?10000:100000000)),1);
+					$arr['yoy']=$this->chartRate($chart_value,$year_value);
+					$arr['mom']=$this->chartRate($chart_value,$prev_value);
+					$arr['avg']=!empty($chart_xl)?round(($chart_xe/$chart_xl),0):0;
+					$year_avg=!empty($year_xl)?($year_xe/$year_xl):0;
+					$prev_avg=!empty($prev_xl)?($prev_xe/$prev_xl):0;
+					$arr['avg_yoy']=$this->chartRate($arr['avg'],$year_avg);
+					$arr['avg_mom']=$this->chartRate($arr['avg'],$prev_avg);
 					$arr['id']=date('y/m',$aa);
 					$arr['i']=$i+1;
 					$arr_sj2[]=$arr;
@@ -2714,13 +2765,19 @@ class WxapiController extends Controller {
 						$year=$nownd-$i;
 					}
 					$arr=array();
-					if($sel_xl==1){
-						$arr['num']=M('shuju_iot')->where("type='$type' AND nd='$year'".$sqlds)->sum('xl');
-					    $arr['num']=round(($arr['num']/10000),1);
-					}elseif($sel_xl==2){
-						$arr['num']=M('shuju_iot')->where("type='$type' AND nd='$year'".$sqlds)->sum('xe');
-					    $arr['num']=round(($arr['num']/100000000),1);
-					}
+					$chart_xl=M('shuju_iot')->where("type='$type' AND nd='$year'".$sqlds)->sum('xl');
+					$chart_xe=M('shuju_iot')->where("type='$type' AND nd='$year'".$sqlds)->sum('xe');
+					$prev_xl=M('shuju_iot')->where("type='$type' AND nd='".($year-1)."'".$sqlds)->sum('xl');
+					$prev_xe=M('shuju_iot')->where("type='$type' AND nd='".($year-1)."'".$sqlds)->sum('xe');
+					$chart_value=($sel_xl==1)?$chart_xl:$chart_xe;
+					$prev_value=($sel_xl==1)?$prev_xl:$prev_xe;
+					$arr['num']=round(($chart_value/($sel_xl==1?10000:100000000)),1);
+					$arr['yoy']=$this->chartRate($chart_value,$prev_value);
+					$arr['mom']=null;
+					$arr['avg']=!empty($chart_xl)?round(($chart_xe/$chart_xl),0):0;
+					$prev_avg=!empty($prev_xl)?($prev_xe/$prev_xl):0;
+					$arr['avg_yoy']=$this->chartRate($arr['avg'],$prev_avg);
+					$arr['avg_mom']=null;
 					$arr_sj2_num=$i;//颜色分界值
 					if(!$arr['num']){
 						break;
@@ -2735,13 +2792,28 @@ class WxapiController extends Controller {
 			array_multisort($arr_sort2, SORT_DESC, $arr_sj2);
 			$arrx=array();
 			$arry=array();
+			$arryoy=array();
+			$arrmom=array();
+			$arravg=array();
+			$arravgyoy=array();
+			$arravgmom=array();
 			foreach($arr_sj2 as $k=>$v){
 				$arrx[]=$v['id'];
 				$arry[]=$v['num'];
+				$arryoy[]=$v['yoy'];
+				$arrmom[]=$v['mom'];
+				$arravg[]=$v['avg'];
+				$arravgyoy[]=$v['avg_yoy'];
+				$arravgmom[]=$v['avg_mom'];
 			}
 			$arr=array();
 			$arr['x']=$arrx;
 			$arr['y']=$arry;
+			$arr['yoy']=$arryoy;
+			$arr['mom']=$arrmom;
+			$arr['avg']=$arravg;
+			$arr['avg_yoy']=$arravgyoy;
+			$arr['avg_mom']=$arravgmom;
 			$return_data['arr_sj2']=$arr;
 			$return_data['arr_sj2_num']=$arr_sj2_num;
 			if($sel_xl==1){
@@ -3162,21 +3234,31 @@ class WxapiController extends Controller {
 					$nd=date('Y',$aa);
 					$jd='Q'.ceil(date('n',$aa) / 3);
 					$arr=array();
-					if($sel_xl==1){
-						$arr['num']=M('shuju_pid')->where("type='$type' AND nd='$nd' AND jd='$jd'".$sqlcj.$sqlds)->sum('chl');
-						if($type==7 || $type==18){
-							$arr['num']=round(($arr['num']/10000),1);
-						}else{
-							$arr['num']=round(($arr['num']/10),1);
-						}
-					}elseif($sel_xl==2){
-						$arr['num']=M('shuju_pid')->where("type='$type' AND nd='$nd' AND jd='$jd'".$sqlcj.$sqlds)->sum('xse');
-						if($type==7 || $type==18){
-							$arr['num']=round(($arr['num']/10000),1);
-						}else{
-							$arr['num']=round(($arr['num']/100),1);
-						}
-					}
+					$chart_where="type='$type' AND nd='$nd' AND jd='$jd'".$sqlcj.$sqlds;
+					$year_where="type='$type' AND nd='".($nd-1)."' AND jd='$jd'".$sqlcj.$sqlds;
+					$prev_ts=strtotime('-3 month',$aa);
+					$prev_nd=date('Y',$prev_ts);
+					$prev_jd='Q'.ceil(date('n',$prev_ts) / 3);
+					$prev_where="type='$type' AND nd='$prev_nd' AND jd='$prev_jd'".$sqlcj.$sqlds;
+					$chart_xl=M('shuju_pid')->where($chart_where)->sum('chl');
+					$chart_xe=M('shuju_pid')->where($chart_where)->sum('xse');
+					$year_xl=M('shuju_pid')->where($year_where)->sum('chl');
+					$year_xe=M('shuju_pid')->where($year_where)->sum('xse');
+					$prev_xl=M('shuju_pid')->where($prev_where)->sum('chl');
+					$prev_xe=M('shuju_pid')->where($prev_where)->sum('xse');
+					$chart_value=($sel_xl==1)?$chart_xl:$chart_xe;
+					$year_value=($sel_xl==1)?$year_xl:$year_xe;
+					$prev_value=($sel_xl==1)?$prev_xl:$prev_xe;
+					$chart_divisor=($type==7 || $type==18)?10000:($sel_xl==1?10:100);
+					$arr['num']=round(($chart_value/$chart_divisor),1);
+					$arr['yoy']=$this->chartRate($chart_value,$year_value);
+					$arr['mom']=$this->chartRate($chart_value,$prev_value);
+					$price_factor=($type==7 || $type==18)?10000:1000;
+					$arr['avg']=!empty($chart_xl)?round(($chart_xe*$price_factor/$chart_xl),0):0;
+					$year_avg=!empty($year_xl)?($year_xe*$price_factor/$year_xl):0;
+					$prev_avg=!empty($prev_xl)?($prev_xe*$price_factor/$prev_xl):0;
+					$arr['avg_yoy']=$this->chartRate($arr['avg'],$year_avg);
+					$arr['avg_mom']=$this->chartRate($arr['avg'],$prev_avg);
 					$arr['id']=$nd.$jd;
 					$arr['i']=$i+1;
 					$arr_sj2[]=$arr;
@@ -3194,21 +3276,23 @@ class WxapiController extends Controller {
 						$year=$nownd-$i;
 					}
 					$arr=array();
-					if($sel_xl==1){
-						$arr['num']=M('shuju_pid')->where("type='$type' AND nd='$year'".$sqlcj.$sqlds)->sum('chl');
-					    if($type==7 || $type==18){
-							$arr['num']=round(($arr['num']/10000),1);
-						}else{
-							$arr['num']=round(($arr['num']/10),1);
-						}
-					}elseif($sel_xl==2){
-						$arr['num']=M('shuju_pid')->where("type='$type' AND nd='$year'".$sqlcj.$sqlds)->sum('xse');
-					    if($type==7 || $type==18){
-							$arr['num']=round(($arr['num']/10000),1);
-						}else{
-							$arr['num']=round(($arr['num']/100),1);
-						}
-					}
+					$chart_where="type='$type' AND nd='$year'".$sqlcj.$sqlds;
+					$prev_where="type='$type' AND nd='".($year-1)."'".$sqlcj.$sqlds;
+					$chart_xl=M('shuju_pid')->where($chart_where)->sum('chl');
+					$chart_xe=M('shuju_pid')->where($chart_where)->sum('xse');
+					$prev_xl=M('shuju_pid')->where($prev_where)->sum('chl');
+					$prev_xe=M('shuju_pid')->where($prev_where)->sum('xse');
+					$chart_value=($sel_xl==1)?$chart_xl:$chart_xe;
+					$prev_value=($sel_xl==1)?$prev_xl:$prev_xe;
+					$chart_divisor=($type==7 || $type==18)?10000:($sel_xl==1?10:100);
+					$arr['num']=round(($chart_value/$chart_divisor),1);
+					$arr['yoy']=$this->chartRate($chart_value,$prev_value);
+					$arr['mom']=null;
+					$price_factor=($type==7 || $type==18)?10000:1000;
+					$arr['avg']=!empty($chart_xl)?round(($chart_xe*$price_factor/$chart_xl),0):0;
+					$prev_avg=!empty($prev_xl)?($prev_xe*$price_factor/$prev_xl):0;
+					$arr['avg_yoy']=$this->chartRate($arr['avg'],$prev_avg);
+					$arr['avg_mom']=null;
 					$arr_sj2_num=$i;//颜色分界值
 					if(!$arr['num']){
 						break;
@@ -3223,13 +3307,28 @@ class WxapiController extends Controller {
 			array_multisort($arr_sort2, SORT_DESC, $arr_sj2);
 			$arrx=array();
 			$arry=array();
+			$arryoy=array();
+			$arrmom=array();
+			$arravg=array();
+			$arravgyoy=array();
+			$arravgmom=array();
 			foreach($arr_sj2 as $k=>$v){
 				$arrx[]=$v['id'];
 				$arry[]=$v['num'];
+				$arryoy[]=$v['yoy'];
+				$arrmom[]=$v['mom'];
+				$arravg[]=$v['avg'];
+				$arravgyoy[]=$v['avg_yoy'];
+				$arravgmom[]=$v['avg_mom'];
 			}
 			$arr=array();
 			$arr['x']=$arrx;
 			$arr['y']=$arry;
+			$arr['yoy']=$arryoy;
+			$arr['mom']=$arrmom;
+			$arr['avg']=$arravg;
+			$arr['avg_yoy']=$arravgyoy;
+			$arr['avg_mom']=$arravgmom;
 			$return_data['arr_sj2']=$arr;
 			$return_data['arr_sj2_num']=$arr_sj2_num;
 			if($sel_xl==1){
@@ -3823,13 +3922,32 @@ class WxapiController extends Controller {
 						$nd=date('Y',$aa);
 						$jd='Q'.ceil(date('n',$aa) / 3);
 						$arr=array();
-						if($sel_xl==1){
-							$arr['num']=M('shuju_tvs')->where("type='$type' AND nd='$nd' AND jd='$jd'".$sqlds)->sum('ch');
-							$arr['num']=round(($arr['num']/10),1);
-						}elseif($sel_xl==2){
-							/*$arr['num']=M('shuju_tvs')->where("type='$type' AND nd='$nd' AND jd='$jd'".$sqlds)->sum('xe');
-							$arr['num']=round(($arr['num']/100),1);*/
-						}
+						$chart_where="type='$type' AND nd='$nd' AND jd='$jd'".$sqlds;
+						$year_where="type='$type' AND nd='".($nd-1)."' AND jd='$jd'".$sqlds;
+						$prev_ts=strtotime('-3 month',$aa);
+						$prev_nd=date('Y',$prev_ts);
+						$prev_jd='Q'.ceil(date('n',$prev_ts) / 3);
+						$prev_where="type='$type' AND nd='$prev_nd' AND jd='$prev_jd'".$sqlds;
+						$chart_xl=M('shuju_tvs')->where($chart_where)->sum('ch');
+						$chart_xe=M('shuju_tvs')->where($chart_where)->sum('xe');
+						$year_xl=M('shuju_tvs')->where($year_where)->sum('ch');
+						$year_xe=M('shuju_tvs')->where($year_where)->sum('xe');
+						$prev_xl=M('shuju_tvs')->where($prev_where)->sum('ch');
+						$prev_xe=M('shuju_tvs')->where($prev_where)->sum('xe');
+						$chart_value=($sel_xl==1)?$chart_xl:$chart_xe;
+						$year_value=($sel_xl==1)?$year_xl:$year_xe;
+						$prev_value=($sel_xl==1)?$prev_xl:$prev_xe;
+						$small_unit=($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==11 || $sel_ds==12);
+						$chart_divisor=$sel_xl==1?($small_unit?10000:10):($small_unit?100000000:100);
+						$arr['num']=round(($chart_value/$chart_divisor),1);
+						$arr['yoy']=$this->chartRate($chart_value,$year_value);
+						$arr['mom']=$this->chartRate($chart_value,$prev_value);
+						$has_price=($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==12);
+						$arr['avg']=$has_price && !empty($chart_xl)?round(($chart_xe/$chart_xl),0):null;
+						$year_avg=$has_price && !empty($year_xl)?($year_xe/$year_xl):0;
+						$prev_avg=$has_price && !empty($prev_xl)?($prev_xe/$prev_xl):0;
+						$arr['avg_yoy']=$has_price?$this->chartRate($arr['avg'],$year_avg):null;
+						$arr['avg_mom']=$has_price?$this->chartRate($arr['avg'],$prev_avg):null;
 						$arr['id']=$nd.$jd;
 						$arr['i']=$i+1;
 						$arr_sj2[]=$arr;
@@ -3847,14 +3965,14 @@ class WxapiController extends Controller {
 							$year=$nownd-$i;
 						}
 						$arr=array();
-						if($sel_xl==1){
-							$arr['num']=M('shuju_tvs')->where("type='$type' AND nd='$year'".$sqlds)->sum('ch');
-							$arr['num']=round(($arr['num']/10),1);
-						}elseif($sel_xl==2){
-							/*$arr['num']=M('shuju_tvs')->where("type='$type' AND nd='$year'".$sqlds)->sum('xe');
-							$arr['num']=round(($arr['num']/100),1);*/
-							
-						}
+						$chart_xl=M('shuju_tvs')->where("type='$type' AND nd='$year'".$sqlds)->sum('ch');
+						$prev_xl=M('shuju_tvs')->where("type='$type' AND nd='".($year-1)."'".$sqlds)->sum('ch');
+						$arr['num']=round(($chart_xl/10),1);
+						$arr['yoy']=$this->chartRate($chart_xl,$prev_xl);
+						$arr['mom']=null;
+						$arr['avg']=null;
+						$arr['avg_yoy']=null;
+						$arr['avg_mom']=null;
 						$arr_sj2_num=$i;//颜色分界值
 						if(!$arr['num']){
 							break;
@@ -3882,21 +4000,33 @@ class WxapiController extends Controller {
 						}
 						$year=date('Y',$aa);
 						$arr=array();
-						if($sel_xl==1){
-							$arr['num']=M('shuju_tvs')->where("type='$type' AND nd='$year' AND yd='$month'".$sqlds)->sum('ch');
-							if($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==11 || $sel_ds==12){
-								$arr['num']=round(($arr['num']/10000),1);
-							}else{
-								$arr['num']=round(($arr['num']/10),1);
-							}
-						}elseif($sel_xl==2){
-							$arr['num']=M('shuju_tvs')->where("type='$type' AND nd='$year' AND yd='$month'".$sqlds)->sum('xe');
-							if($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==11 || $sel_ds==12){
-								$arr['num']=round(($arr['num']/100000000),1);
-							}else{
-								$arr['num']=round(($arr['num']/100),1);
-							}
-						}
+						$year_ts=strtotime('-1 year',$aa);
+						$prev_ts=strtotime('-1 month',$aa);
+						$year_month=($sel_ds==2)?date('M',$year_ts):date('y.m',$year_ts);
+						$prev_month=($sel_ds==2)?date('M',$prev_ts):date('y.m',$prev_ts);
+						$chart_where="type='$type' AND nd='$year' AND yd='$month'".$sqlds;
+						$year_where="type='$type' AND nd='".date('Y',$year_ts)."' AND yd='$year_month'".$sqlds;
+						$prev_where="type='$type' AND nd='".date('Y',$prev_ts)."' AND yd='$prev_month'".$sqlds;
+						$chart_xl=M('shuju_tvs')->where($chart_where)->sum('ch');
+						$chart_xe=M('shuju_tvs')->where($chart_where)->sum('xe');
+						$year_xl=M('shuju_tvs')->where($year_where)->sum('ch');
+						$year_xe=M('shuju_tvs')->where($year_where)->sum('xe');
+						$prev_xl=M('shuju_tvs')->where($prev_where)->sum('ch');
+						$prev_xe=M('shuju_tvs')->where($prev_where)->sum('xe');
+						$chart_value=($sel_xl==1)?$chart_xl:$chart_xe;
+						$year_value=($sel_xl==1)?$year_xl:$year_xe;
+						$prev_value=($sel_xl==1)?$prev_xl:$prev_xe;
+						$small_unit=($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==11 || $sel_ds==12);
+						$chart_divisor=$sel_xl==1?($small_unit?10000:10):($small_unit?100000000:100);
+						$arr['num']=round(($chart_value/$chart_divisor),1);
+						$arr['yoy']=$this->chartRate($chart_value,$year_value);
+						$arr['mom']=$this->chartRate($chart_value,$prev_value);
+						$has_price=($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==12);
+						$arr['avg']=$has_price && !empty($chart_xl)?round(($chart_xe/$chart_xl),0):null;
+						$year_avg=$has_price && !empty($year_xl)?($year_xe/$year_xl):0;
+						$prev_avg=$has_price && !empty($prev_xl)?($prev_xe/$prev_xl):0;
+						$arr['avg_yoy']=$has_price?$this->chartRate($arr['avg'],$year_avg):null;
+						$arr['avg_mom']=$has_price?$this->chartRate($arr['avg'],$prev_avg):null;
 						$arr['id']=date('y/m',$aa);
 						$arr['i']=$i+1;
 						$arr_sj2[]=$arr;
@@ -3913,21 +4043,24 @@ class WxapiController extends Controller {
 							$year=$nownd-$i;
 						}
 						$arr=array();
-						if($sel_xl==1){
-							$arr['num']=M('shuju_tvs')->where("type='$type' AND nd='$year'".$sqlds)->sum('ch');
-							if($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==11 || $sel_ds==12){
-								$arr['num']=round(($arr['num']/10000),1);
-							}else{
-								$arr['num']=round(($arr['num']/10),1);
-							}
-						}elseif($sel_xl==2){
-							$arr['num']=M('shuju_tvs')->where("type='$type' AND nd='$year'".$sqlds)->sum('xe');
-							if($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==11 || $sel_ds==12){
-								$arr['num']=round(($arr['num']/100000000),1);
-							}else{
-								$arr['num']=round(($arr['num']/100),1);
-							}
-						}
+						$chart_where="type='$type' AND nd='$year'".$sqlds;
+						$prev_where="type='$type' AND nd='".($year-1)."'".$sqlds;
+						$chart_xl=M('shuju_tvs')->where($chart_where)->sum('ch');
+						$chart_xe=M('shuju_tvs')->where($chart_where)->sum('xe');
+						$prev_xl=M('shuju_tvs')->where($prev_where)->sum('ch');
+						$prev_xe=M('shuju_tvs')->where($prev_where)->sum('xe');
+						$chart_value=($sel_xl==1)?$chart_xl:$chart_xe;
+						$prev_value=($sel_xl==1)?$prev_xl:$prev_xe;
+						$small_unit=($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==11 || $sel_ds==12);
+						$chart_divisor=$sel_xl==1?($small_unit?10000:10):($small_unit?100000000:100);
+						$arr['num']=round(($chart_value/$chart_divisor),1);
+						$arr['yoy']=$this->chartRate($chart_value,$prev_value);
+						$arr['mom']=null;
+						$has_price=($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==12);
+						$arr['avg']=$has_price && !empty($chart_xl)?round(($chart_xe/$chart_xl),0):null;
+						$prev_avg=$has_price && !empty($prev_xl)?($prev_xe/$prev_xl):0;
+						$arr['avg_yoy']=$has_price?$this->chartRate($arr['avg'],$prev_avg):null;
+						$arr['avg_mom']=null;
 						$arr_sj2_num=$i;//颜色分界值
 						
 						if(!$arr['num']){
@@ -3944,13 +4077,28 @@ class WxapiController extends Controller {
 			array_multisort($arr_sort2, SORT_DESC, $arr_sj2);
 			$arrx=array();
 			$arry=array();
+			$arryoy=array();
+			$arrmom=array();
+			$arravg=array();
+			$arravgyoy=array();
+			$arravgmom=array();
 			foreach($arr_sj2 as $k=>$v){
 				$arrx[]=$v['id'];
 				$arry[]=$v['num'];
+				$arryoy[]=$v['yoy'];
+				$arrmom[]=$v['mom'];
+				$arravg[]=$v['avg'];
+				$arravgyoy[]=$v['avg_yoy'];
+				$arravgmom[]=$v['avg_mom'];
 			}
 			$arr=array();
 			$arr['x']=$arrx;
 			$arr['y']=$arry;
+			$arr['yoy']=$arryoy;
+			$arr['mom']=$arrmom;
+			$arr['avg']=$arravg;
+			$arr['avg_yoy']=$arravgyoy;
+			$arr['avg_mom']=$arravgmom;
 			$return_data['arr_sj2']=$arr;
 			$return_data['arr_sj2_num']=$arr_sj2_num;
 			if($sel_xl==1){
