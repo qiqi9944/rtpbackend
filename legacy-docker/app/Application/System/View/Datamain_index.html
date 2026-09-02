@@ -52,6 +52,7 @@
               <td>{$v['xl']}</td>
               <td>{$v['xe']}</td>
               <td>
+                <a title="修改" href="javascript:;" onClick="xadmin.open('修改数据','{:U('Datamain/edit',array('id'=>$v['id']))}','800','600')" style="text-decoration:none;margin-right:8px"><i class="layui-icon">&#xe642;</i></a>
                 <a title="删除" href="javascript:;" onClick="member_del(this,'{$v['id']}')" style="text-decoration:none"><i class="layui-icon">&#xe640;</i></a>
               </td>
             </tr>

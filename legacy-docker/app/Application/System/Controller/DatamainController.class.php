@@ -69,6 +69,35 @@ class DatamainController extends CheckController {
 		}
 		$this->success("保存成功！");
 	}
+	public function edit(){
+		$id=I('id','',intval);
+		$info=M('shuju_iot')->where("id='$id'")->find();
+		if(!$info){
+			$this->error("数据不存在！");
+		}
+		$this->assign('info',$info);
+		$this->display();
+	}
+	public function doedit(){
+		$id=I('id','',intval);
+		$arr=array();
+		$arr['type']=I('type','',intval);
+		$arr['market']=I('market','',dhtmlspecialchars);
+		$arr['lx']=I('lx','',dhtmlspecialchars);
+		$arr['nd']=I('nd','',dhtmlspecialchars);
+		$arr['yd']=I('yd','',dhtmlspecialchars);
+		$arr['ds']=I('ds','',dhtmlspecialchars);
+		$arr['pp']=I('pp','',dhtmlspecialchars);
+		$arr['gy1']=I('gy1','',dhtmlspecialchars);
+		$arr['gy2']=I('gy2','',dhtmlspecialchars);
+		$arr['xl']=I('xl','',floatval);
+		$arr['xe']=I('xe','',floatval);
+		if(!$id || !$arr['type'] || !$arr['market'] || !$arr['lx'] || !$arr['nd'] || !$arr['yd'] || !$arr['pp']){
+			$this->error("参数不完整！");
+		}
+		M('shuju_iot')->where("id='$id'")->save($arr);
+		$this->success("保存成功！");
+	}
 	public function del(){
 		$id=I('id','',intval);
 		M('shuju_iot')->where("id='$id'")->delete();
