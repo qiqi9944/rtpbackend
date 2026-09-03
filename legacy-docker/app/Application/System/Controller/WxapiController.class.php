@@ -2927,7 +2927,7 @@ class WxapiController extends Controller {
 						$arr_sj2_num=7-$i;//颜色分界值
 					}
 				}
-			}elseif($sel_yd!=13){//月度
+			}elseif(!$qview && $sel_yd!=13){//月度
 				$a=strtotime(date('Y-m',$nowtime).'-01');//当前月时间戳
 				$arr_sj2_num=11;
 				for($i=0;$i<12;$i++){
