@@ -454,18 +454,38 @@ class WxapiController extends Controller {
 			if($quarter && $year){$nowtime=strtotime($year.'-'.(($quarter*3)-2).'-01');}
 			$jdstr='Q'.$quarter;
 			$nd=date('Y',$nowtime); $ndl=date('Y',strtotime('-1 year',$nowtime));
+			if($ytd==1){
+				//年累计：Q1~当前季度 vs 去年同期
+				$arr_q=array();for($q=1;$q<=$quarter;$q++){$arr_q[]="jd='Q$q'";}
+				$tmpq=implode(' OR ',$arr_q);
+				$nowc="nd='$nd' AND (".$tmpq.")";
+				$lastc="nd='$ndl' AND (".$tmpq.")";
+			}else{
+				$nowc="nd='$nd' AND jd='$jdstr'";
+				$lastc="nd='$ndl' AND jd='$jdstr'";
+			}
 			$xl_now=0;$xe_now=0;$xl_last=0;$xe_last=0;
-			foreach(M('shuju_pid')->where("type='$type' AND nd='$nd' AND jd='$jdstr'".$flt)->select() as $r){$xl_now+=($r['chl']/1000);$xe_now+=($r['xse']/100);}
-			foreach(M('shuju_pid')->where("type='$type' AND nd='$ndl' AND jd='$jdstr'".$flt)->select() as $r){$xl_last+=($r['chl']/1000);$xe_last+=($r['xse']/100);}
-			//市场规模近12季 x/y
+			foreach(M('shuju_pid')->where("type='$type' AND ".$nowc.$flt)->select() as $r){$xl_now+=($r['chl']/1000);$xe_now+=($r['xse']/100);}
+			foreach(M('shuju_pid')->where("type='$type' AND ".$lastc.$flt)->select() as $r){$xl_last+=($r['chl']/1000);$xe_last+=($r['xse']/100);}
+			//市场规模 x/y
 			$arr_sort=array();
-			for($i=0;$i<8;$i++){
-				$q=$quarter-((int)floor(($i-($quarter-1))/4)*4);
-				$yy=$nd-$i;
-				if($q<1){$q+=4;$yy=$yy-1;}
-				$sum=0;
-				foreach(M('shuju_pid')->where("type='$type' AND nd='$yy' AND jd='Q$q'".$flt)->select() as $r){$sum+=($xl==1?($r['chl']/1000):($r['xse']/100));}
-				$arr=array();$arr['id']=$yy.'Q'.$q;$arr['num']=round($sum,1);$arr_sj2[]=$arr;
+			if($ytd==1){
+				//年累计：年度柱
+				for($i=0;$i<8;$i++){
+					$yy=$nd-$i;
+					$sum=0;
+					foreach(M('shuju_pid')->where("type='$type' AND nd='$yy'".$flt)->select() as $r){$sum+=($xl==1?($r['chl']/1000):($r['xse']/100));}
+					$arr=array();$arr['id']=$yy;$arr['num']=round($sum,1);$arr_sj2[]=$arr;
+				}
+			}else{
+				for($i=0;$i<8;$i++){
+					$q=$quarter-((int)floor(($i-($quarter-1))/4)*4);
+					$yy=$nd-$i;
+					if($q<1){$q+=4;$yy=$yy-1;}
+					$sum=0;
+					foreach(M('shuju_pid')->where("type='$type' AND nd='$yy' AND jd='Q$q'".$flt)->select() as $r){$sum+=($xl==1?($r['chl']/1000):($r['xse']/100));}
+					$arr=array();$arr['id']=$yy.'Q'.$q;$arr['num']=round($sum,1);$arr_sj2[]=$arr;
+				}
 			}
 			array_reverse($arr_sj2);
 			$pjjg=!empty($xl_now)?round(($xe_now/$xl_now),0):0;
@@ -476,7 +496,7 @@ class WxapiController extends Controller {
 			$arr=array();$arr['t1']='平均价格';$arr['t2']=$pjjg;$arr['t3']=$bfb($pjjg,$pjjgl);$arr['dw']='元';$arr_sj1[]=$arr;
 			//品牌份额（bp）
 			$bl=array();
-			foreach(M('shuju_pid')->where("type='$type' AND nd='$nd' AND jd='$jdstr'".$flt)->select() as $r){
+			foreach(M('shuju_pid')->where("type='$type' AND ".$nowc.$flt)->select() as $r){
 				$bl[$r['pp']]=$bl[$r['pp']]+($xl==1?($r['chl']/1000):($r['xse']/100));
 			}
 			arsort($bl);
@@ -2632,45 +2652,85 @@ class WxapiController extends Controller {
 			if(!$sel_xl){
 				$sel_xl=1;//1销量，2销额
 			}
+			$sel_period=I('sel_period','',dhtmlspecialchars); //月度/季度视图
+			$sel_ytd=I('sel_ytd','',intval);                  //0当期 1年累计
 			$sel_yd=I('sel_yd','',intval);
 			if(!$sel_yd){
-				$sel_yd=1;//1月度，2年累计（年度）
+				$sel_yd=1;//月度视图：1-12月份，13年累计；季度视图：1-4季度，5年累计
 			}
-			if($sel_yd==13){
-				//年份和月份
-				if($type==3 || $type==4 || $type==13 || $type==15 || $type==19){
-					$nowyd=date('Y.m',$this->nowtime);
-					//上一年这个月
-					$lastm=date('Y.m',strtotime('-1 year',$this->nowtime));
-				}else{
-					$nowyd=date('y.m',$this->nowtime);
-					//上一年这个月
-					$lastm=date('y.m',strtotime('-1 year',$this->nowtime));
-				}
-				$nownd=date('Y',$this->nowtime);
+			$qview=($sel_period=='quarter');//月度品类可按季度聚合（线上零售按月，季度视图为季度汇总）
+			//累计=年累计时，强制进入年累计（月度13 / 季度5）
+			if($qview){
+				if($sel_ytd==1 || $sel_yd>=5){$sel_yd=5;}
+				if($sel_yd<1 || $sel_yd>5){$sel_yd=1;}
 			}else{
-				$sel_yd_s=$sel_yd-1;
-			    $nowtime=strtotime('-'.$sel_yd_s.' month',$this->nowtime);
-				//年份和月份
-				if($type==3 || $type==4 || $type==13 || $type==15 || $type==19){
-					$nowyd=date('Y.m',$nowtime);
-					//上一年这个月
-					$lastm=date('Y.m',strtotime('-1 year',$nowtime));
-				}else{
-					$nowyd=date('y.m',$nowtime);
-					//上一年这个月
-					$lastm=date('y.m',strtotime('-1 year',$nowtime));
-				}
-				$nownd=date('Y',$nowtime);
+				if($sel_ytd==1 || $sel_yd>=13){$sel_yd=13;}
+				if($sel_yd<1 || $sel_yd>13){$sel_yd=1;}
 			}
-			
-			//$return_data['arr_sj']="数据截止到".date('Y年m月',$this->nowtime);
-			$return_data['arr_sj']="数据口径为线上监测和同比";
-			if($sel_yd!=13){
-				$sql =" AND yd='".$nowyd."'";
-				//同比，上一年这个月
-				$sql1 =" AND yd='".$lastm."'";
-			}elseif($sel_yd==13){
+			$mkd=function($y,$m){return date('Y.m',mktime(0,0,0,$m,1,$y));};
+			$mks=function($y,$m){return date('y.m',mktime(0,0,0,$m,1,$y));};
+			$curM=date('n',$this->nowtime);
+			$curY=date('Y',$this->nowtime);
+			$curQ=ceil($curM/3);
+			if($qview){
+				//季度视图：sel_yd 1=当前季度，2-4=往前季度，5=年累计
+				if($sel_yd==5){
+					$nownd=$curY;$lastnd=$curY-1;$nowQ=$curQ;
+					$ms=array();for($m=1;$m<=$curQ*3;$m++){$ms[]=$m;}
+					$arr1=array();$arr2=array();
+					foreach($ms as $m){
+						$arr1[]="(yd='".$mkd($nownd,$m)."' OR yd='".$mks($nownd,$m)."')";
+						$arr2[]="(yd='".$mkd($lastnd,$m)."' OR yd='".$mks($lastnd,$m)."')";
+					}
+					$sql=" AND (".implode(' OR ',$arr1).")";//当前年
+					$sql1=" AND (".implode(' OR ',$arr2).")";//上一年
+				}else{
+					$tq=strtotime('-'.(($sel_yd-1)*3).' month',mktime(0,0,0,$curM,1,$curY));
+					$nownd=date('Y',$tq);$nowQ=ceil(date('n',$tq)/3);$lastnd=$nownd-1;
+					$ms=array($nowQ*3-2,$nowQ*3-1,$nowQ*3);
+					$arr1=array();$arr2=array();
+					foreach($ms as $m){
+						$arr1[]="(yd='".$mkd($nownd,$m)."' OR yd='".$mks($nownd,$m)."')";
+						$arr2[]="(yd='".$mkd($lastnd,$m)."' OR yd='".$mks($lastnd,$m)."')";
+					}
+					$sql=" AND (".implode(' OR ',$arr1).")";//选中季度
+					$sql1=" AND (".implode(' OR ',$arr2).")";//去年同期季度
+				}
+				$return_data['arr_sj']="数据口径为线上监测和同比（按季度汇总）";
+			}else{
+				if($sel_yd==13){
+					//年份和月份
+					if($type==3 || $type==4 || $type==13 || $type==15 || $type==19){
+						$nowyd=date('Y.m',$this->nowtime);
+						//上一年这个月
+						$lastm=date('Y.m',strtotime('-1 year',$this->nowtime));
+					}else{
+						$nowyd=date('y.m',$this->nowtime);
+						//上一年这个月
+						$lastm=date('y.m',strtotime('-1 year',$this->nowtime));
+					}
+					$nownd=date('Y',$this->nowtime);
+				}else{
+					$sel_yd_s=$sel_yd-1;
+				    $nowtime=strtotime('-'.$sel_yd_s.' month',$this->nowtime);
+					//年份和月份
+					if($type==3 || $type==4 || $type==13 || $type==15 || $type==19){
+						$nowyd=date('Y.m',$nowtime);
+						//上一年这个月
+						$lastm=date('Y.m',strtotime('-1 year',$nowtime));
+					}else{
+						$nowyd=date('y.m',$nowtime);
+						//上一年这个月
+						$lastm=date('y.m',strtotime('-1 year',$nowtime));
+					}
+					$nownd=date('Y',$nowtime);
+				}
+				$return_data['arr_sj']="数据口径为线上监测和同比";
+				if($sel_yd!=13){
+					$sql =" AND yd='".$nowyd."'";
+					//同比，上一年这个月
+					$sql1 =" AND yd='".$lastm."'";
+				}elseif($sel_yd==13){
 				//月的数组
 				$arr_m1=array();
 				$arr_m2=array();
@@ -2701,6 +2761,7 @@ class WxapiController extends Controller {
 				$sql =" AND (".$tmp1.")";//当前年
 				$sql1 =" AND (".$tmp2.")";//上一年
 			}
+			}
 			
 			//电商数组
 			$ds=M('shuju_iot')->distinct(true)->where("type='$type'".$sql)->field('ds')->select();
@@ -2719,14 +2780,29 @@ class WxapiController extends Controller {
 			//销量数组
 			$arr_xl=array('0'=>array('id'=>'1','name'=>'销量'),'1'=>array('id'=>'2','name'=>'销额'));
 			$return_data['arr_xl']=$arr_xl;
-			//月度数组
+			//月度/季度数组（周期下拉）
 			$arr_ss1=array();
-			for($i=0;$i<12;$i++){
+			if($qview){
+				$a=strtotime($curY.'-'.($curQ*3-2).'-01');//当前季度时间戳
+				for($i=0;$i<4;$i++){
+					$j=$i+1;
+					if($i==0){
+						$aa=$a;
+					}else{
+						$aa=strtotime('-'.($i*3).' month',$a);
+					}
+					$arr_ss1[$j]=date('Y',$aa).'/Q'.ceil(date('n',$aa)/3);
+				}
 				$j=$i+1;
-				$arr_ss1[$j]=date('Y/m',strtotime('-'.$i.' month',$this->nowtime));
+				$arr_ss1[$j]='年累计';
+			}else{
+				for($i=0;$i<12;$i++){
+					$j=$i+1;
+					$arr_ss1[$j]=date('Y/m',strtotime('-'.$i.' month',$this->nowtime));
+				}
+				$j=$i+1;
+				$arr_ss1[$j]='年累计';
 			}
-			$j=$i+1;
-			$arr_ss1[$j]='年累计';
 			$arr_sss1=array();
 			foreach($arr_ss1 as $k=>$v){
 				$arr=array();
@@ -2810,7 +2886,48 @@ class WxapiController extends Controller {
 			//市场规模变化
 			$arr_sj2=array();
 			$arr_sort2=array();
-			if($sel_yd!=13){//月度
+			if($qview && $sel_yd!=5){//季度聚合视图：近8个季度
+				$base=strtotime($nownd.'-'.($nowQ*3-2).'-01');//选中季度首月
+				$arr_sj2_num=7;
+				for($i=0;$i<8;$i++){
+					if($i==0){
+						$aa=$base;
+					}else{
+						$aa=strtotime('-'.($i*3).' month',$base);
+					}
+					$nd=date('Y',$aa);$qno=ceil(date('n',$aa)/3);$q='Q'.$qno;
+					$ms=array($qno*3-2,$qno*3-1,$qno*3);
+					$chart_xl=0;$chart_xe=0;$year_xl=0;$year_xe=0;$prev_xl=0;$prev_xe=0;
+					foreach($ms as $m){
+						foreach($this->qiot($type,mktime(0,0,0,$m,1,$nd),$sqlds) as $row){$chart_xl+=$row['xl'];$chart_xe+=$row['xe'];}
+						foreach($this->qiot($type,mktime(0,0,0,$m,1,$nd-1),$sqlds) as $row){$year_xl+=$row['xl'];$year_xe+=$row['xe'];}
+					}
+					$prev_ts=strtotime('-3 month',$aa);
+					$pnd=date('Y',$prev_ts);$pq=ceil(date('n',$prev_ts)/3);
+					$pms=array($pq*3-2,$pq*3-1,$pq*3);
+					foreach($pms as $m){
+						foreach($this->qiot($type,mktime(0,0,0,$m,1,$pnd),$sqlds) as $row){$prev_xl+=$row['xl'];$prev_xe+=$row['xe'];}
+					}
+					$chart_value=($sel_xl==1)?$chart_xl:$chart_xe;
+					$year_value=($sel_xl==1)?$year_xl:$year_xe;
+					$prev_value=($sel_xl==1)?$prev_xl:$prev_xe;
+					$arr['num']=round(($chart_value/($sel_xl==1?10000:100000000)),1);
+					$arr['yoy']=$this->chartRate($chart_value,$year_value);
+					$arr['mom']=$this->chartRate($chart_value,$prev_value);
+					$arr['avg']=!empty($chart_xl)?round(($chart_xe/$chart_xl),0):0;
+					$year_avg=!empty($year_xl)?($year_xe/$year_xl):0;
+					$prev_avg=!empty($prev_xl)?($prev_xe/$prev_xl):0;
+					$arr['avg_yoy']=$this->chartRate($arr['avg'],$year_avg);
+					$arr['avg_mom']=$this->chartRate($arr['avg'],$prev_avg);
+					$arr['id']=$nd.$q;
+					$arr['i']=$i+1;
+					$arr_sj2[]=$arr;
+					$arr_sort2[]=$arr['i'];
+					if($nd!=date('Y',$base) && $arr_sj2_num==7){
+						$arr_sj2_num=7-$i;//颜色分界值
+					}
+				}
+			}elseif($sel_yd!=13){//月度
 				$a=strtotime(date('Y-m',$nowtime).'-01');//当前月时间戳
 				$arr_sj2_num=11;
 				for($i=0;$i<12;$i++){
@@ -2848,7 +2965,7 @@ class WxapiController extends Controller {
 						$arr_sj2_num=11-$i;//颜色分界值
 					}
 				}
-			}elseif($sel_yd==13){//累计
+			}elseif($sel_yd==13 || ($qview && $sel_yd==5)){//累计（月度13/季度5）
 				for($i=0;$i<12;$i++){
 					if($i==0){
 						$year=$nownd;
@@ -3131,6 +3248,9 @@ class WxapiController extends Controller {
 			if(!$sel_yd){
 				$sel_yd=1;//1季度，2年累计（年度）
 			}
+			$sel_ytd=I('sel_ytd','',intval);//0当期 1年累计
+			if($sel_ytd==1 || $sel_yd>=5){$sel_yd=5;}
+			if($sel_yd<1 || $sel_yd>5){$sel_yd=1;}
 			
 			if($sel_yd==5){
 				//年份和季度
@@ -3687,6 +3807,10 @@ class WxapiController extends Controller {
 			$sel_yd=I('sel_yd','',intval);
 			if(!$sel_yd){
 				$sel_yd=1;//1月度，2年累计（年度）
+			}
+			$sel_ytd=I('sel_ytd','',intval);//0当期 1年累计
+			if($sel_ytd==1){
+				$sel_yd=($sel_ds==1 || $sel_ds==4 || $sel_ds==9)?5:13;//季度口径子类=5，月度口径子类=13
 			}
 			if($sel_ds==4){
 				$this->nowjd91=$this->nowjd121;
