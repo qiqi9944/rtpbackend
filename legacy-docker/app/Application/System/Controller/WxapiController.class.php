@@ -2290,9 +2290,100 @@ class WxapiController extends Controller {
 			}
 		}
 		$return_data['arr_sj11']=$arr_sj11;
-		
+
 		/* echo '<pre>';
 		print_r($return_data);exit; */
+		// ===== 按新品类组(首页菜单)重新分组总览数据 =====
+		$arr_groups=array();
+		$menuList=M('indexmenu')->where("isrecommand=1")->order("displayorder DESC,id DESC")->select();
+		$cateNames=array();
+		foreach($this->arr_datascate2 as $dk=>$dv){
+			foreach($dv as $lk=>$lv){
+				$cateNames[$lk]=$lv;
+			}
+		}
+		$iotSet=array(1,2,3,4,13,14,15,16,19,20);
+		$pidSet=array(5,6,7,8,18);
+		$tvsSet=array(9,10,11,12,17,21);
+		foreach($menuList as $menu){
+			$ids=M('categroup')->where("menu_id='".$menu['id']."'")->order('type ASC')->getfield('type',true);
+			if(!$ids){
+				$ids=array($menu['type']);
+			}
+			$branch='iot';
+			foreach($ids as $tid){
+				if(in_array($tid,$pidSet)){
+					$branch='pid';
+				}elseif(in_array($tid,$tvsSet)){
+					$branch='tvs';
+				}
+			}
+			$group=array('id'=>$menu['id'],'name'=>$menu['name'],'branch'=>$branch);
+			if($branch=='tvs'){
+				$group['tips']=isset($return_data['arr_jg3'])?$return_data['arr_jg3']:'';
+				$arr_groups[]=$group;
+				continue;
+			}
+			$curxl=0;$curxe=0;$lastxl=0;$lastxe=0;
+			$tbl=array();
+			$s=0;
+			foreach($ids as $tid){
+				$tid=(int)$tid;
+				if($branch=='iot'){
+					$cx=isset($iotxl[$tid])?$iotxl[$tid]:0;
+					$ce=isset($iotxe[$tid])?$iotxe[$tid]:0;
+					$lx=isset($iotlastxl[$tid])?$iotlastxl[$tid]:0;
+					$le=isset($iotlastxe[$tid])?$iotlastxe[$tid]:0;
+				}else{
+					$cx=isset($pidxl[$tid])?$pidxl[$tid]:0;
+					$ce=isset($pidxe[$tid])?$pidxe[$tid]:0;
+					$lx=isset($pidlastxl[$tid])?$pidlastxl[$tid]:0;
+					$le=isset($pidlastxe[$tid])?$pidlastxe[$tid]:0;
+				}
+				$curxl+=$cx;$curxe+=$ce;$lastxl+=$lx;$lastxe+=$le;
+				if($branch=='iot'){
+					$pjjg=isset($iotpjjg[$tid])?$iotpjjg[$tid]:0;
+					$lpjjg=isset($iotlastpjjg[$tid])?$iotlastpjjg[$tid]:0;
+					$t2=!empty($cx)?sprintf('%.1f',round(($cx/10000),1)):0;
+					$t4=round($pjjg,0);
+				}else{
+					$pjjg=isset($pidpjjg[$tid])?$pidpjjg[$tid]:0;
+					$lpjjg=isset($pidlastpjjg[$tid])?$pidlastpjjg[$tid]:0;
+					$t2=!empty($cx)?sprintf('%.1f',round(($cx/10),1)):0;
+					$t4=round($pjjg,0);
+				}
+				$t3='+0%';
+				if(!empty($lx)){
+					$t3=(($cx>$lx)?'+':'-').round((abs($cx-$lx)/$lx)*100,0).'%';
+				}
+				$t5='+0%';
+				if(!empty($lpjjg)){
+					$t5=(($pjjg>$lpjjg)?'+':'-').round((abs($pjjg-$lpjjg)/$lpjjg)*100,0).'%';
+				}
+				$tbl[]=array('id'=>$tid,'ids'=>$s,'t1'=>isset($cateNames[$tid])?$cateNames[$tid]:$tid,'t2'=>$t2,'t3'=>$t3,'t4'=>$t4,'t5'=>$t5);
+				$s++;
+			}
+			if($branch=='iot'){
+				$gxl=sprintf('%.1f',round(($curxl/10000),1));
+				$gxe=sprintf('%.1f',round(($curxe/100000000),1));
+				$group['tips']=isset($return_data['arr_jg1'])?$return_data['arr_jg1']:'';
+				$group['arr_ss']=$arr_sss1;
+			}else{
+				$gxl=sprintf('%.1f',round(($curxl/10),1));
+				$gxe=sprintf('%.1f',round(($curxe/100),1));
+				$group['tips']=isset($return_data['arr_jg2'])?$return_data['arr_jg2']:'';
+				$group['arr_ss']=$arr_sss2;
+			}
+			$gxlbfb=!empty($lastxl)?(($curxl>$lastxl)?'+':'-').round((abs($curxl-$lastxl)/$lastxl)*100,0).'%':'+0%';
+			$gxebfb=!empty($lastxe)?(($curxe>$lastxe)?'+':'-').round((abs($curxe-$lastxe)/$lastxe)*100,0).'%':'+0%';
+			$group['sj1']=array(
+				'xl'=>$gxl,'xlbfb'=>$gxlbfb,'xlfh'=>$curxl>$lastxl?'+':'-',
+				'xe'=>$gxe,'xebfb'=>$gxebfb,'xefh'=>$curxe>$lastxe?'+':'-'
+			);
+			$group['sj2']=$tbl;
+			$arr_groups[]=$group;
+		}
+		$return_data['arr_groups']=$arr_groups;
 		echo json_encode($return_data);
 	}
 	//数据页面，分类型
