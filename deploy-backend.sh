@@ -16,7 +16,6 @@ set -e
 
 SRC_REPO="https://raw.githubusercontent.com/qiqi9944/rtpbackend/main/legacy-docker/app/Application/System/Controller/WxapiController.class.php"
 SRC_FILE="${1:-/www/wwwroot/rtpbackend/Application/System/Controller/WxapiController.class.php}"
-BACKUP="${SRC_FILE}.bak.$(date +%Y%m%d%H%M%S)"
 TMP="$(mktemp /tmp/wxapi.XXXXXX.php)"
 
 if [ "$1" = "--local" ]; then
@@ -35,6 +34,7 @@ fi
 grep -q "function getshuju" "$TMP" || { echo "文件校验失败：未找到 getshuju，已中止"; rm -f "$TMP"; exit 1; }
 grep -q "arr_sj8" "$TMP" || echo "[!] 警告：文件中未找到 arr_sj8，可能不是最新版"
 
+BACKUP="${SRC_FILE}.bak.$(date +%Y%m%d%H%M%S)"
 echo "[*] 备份原文件 -> $BACKUP"
 cp "$SRC_FILE" "$BACKUP"
 
