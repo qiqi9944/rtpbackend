@@ -1020,6 +1020,46 @@ class WxapiController extends Controller {
 		$return_data['keywords'] = $keywords;
 		echo json_encode($return_data);
 	}
+	//按品类/设备名搜索（供首页搜索联动，返回设备级品类 + 首页菜单组名）
+	public function searchcategory(){
+		$keywords=trim(I('keywords','',dhtmlspecialchars));
+		$return_data=array();
+		$datalist=array();
+		if($keywords===''){
+			$return_data['status']=1;
+			$return_data['datalist']=array();
+			echo json_encode($return_data);
+			exit;
+		}
+		$seen=array();
+		//1) 设备级品类：取自 config Lt_datascate2（如 智能投影/智能音箱/交互平板...）
+		foreach($this->arr_datascate2 as $gid=>$types){
+			foreach($types as $tid=>$tname){
+				if($tname!=='' && strpos($tname,$keywords)!==false){
+					$key='t'.$tid;
+					if(!isset($seen[$key])){
+						$seen[$key]=1;
+						$datalist[]=array('id'=>$tid,'name'=>$tname,'group'=>$gid);
+					}
+				}
+			}
+		}
+		//2) 首页菜单组名：indexmenu.name（如 影音娱乐/商用显示...）
+		$menus=M('indexmenu')->where("isrecommand=1 AND name like '%$keywords%'")->order("displayorder DESC,id DESC")->select();
+		if($menus){
+			foreach($menus as $m){
+				$key='m'.$m['type'];
+				if(!isset($seen[$key])){
+					$seen[$key]=1;
+					$datalist[]=array('id'=>$m['type'],'name'=>$m['name'],'group'=>0);
+				}
+			}
+		}
+		$return_data['status']=1;
+		$return_data['datalist']=$datalist;
+		$return_data['keywords']=$keywords;
+		echo json_encode($return_data);
+	}
 	//数据总览页面
 	public function getdatas(){
 		//每个组的时间戳
