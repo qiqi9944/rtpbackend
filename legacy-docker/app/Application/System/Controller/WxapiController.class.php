@@ -895,11 +895,14 @@ class WxapiController extends Controller {
 			$sql .=" AND sjtype='$sjtype'";
 		}
 		$datalist = array();
-		$datalist = M('news')->where($sql)->field('id,name,url,addtime,tag,pic')->order("displayorder DESC,addtime DESC,id DESC")->limit($limit,$lm)->select();
+		$datalist = M('news')->where($sql)->field('id,name,url,addtime,tag,pic,bannerpic,isbanner')->order("displayorder DESC,addtime DESC,id DESC")->limit($limit,$lm)->select();
 		foreach($datalist as $k=>$v){
 			$v['addtime']=date('Y-m-d',$v['addtime']);
 			if($v['pic']){
 				$v['pic']=C('SITEURL').$v['pic'];
+			}
+			if($v['bannerpic']){
+				$v['bannerpic']=C('SITEURL').$v['bannerpic'];
 			}
 			$datalist[$k]=$v;
 		}
@@ -977,8 +980,14 @@ class WxapiController extends Controller {
 			$data['content'] = preg_replace('/&lt;img([\s\S]*?)src\=&quot;\/Uploads([\s\S]*?)&quot;([\s\S]*?)&gt;/i','&lt;img\\1src\=&quot;'.C('SITEURL').'/Uploads\\2&quot;\\3&gt;', $data['content']);
 		    $data['content'] = preg_replace('/&lt;a([\s\S]*?)href\=&quot;\/Uploads([\s\S]*?)&quot;([\s\S]*?)&gt;/i','&lt;a\\1href\=&quot;'.C('SITEURL').'/Uploads\\2&quot;\\3&gt;', $data['content']);
 		    $data['content'] = preg_replace('/&lt;video([\s\S]*?)src\=&quot;\/Uploads([\s\S]*?)&quot;([\s\S]*?)&gt;([\s\S]*?)&lt;source([\s\S]*?)src\=&quot;\/Uploads([\s\S]*?)&quot;([\s\S]*?)&gt;([\s\S]*?)&lt;\/video&gt;/i','&lt;video\\1src\=&quot;'.C('SITEURL').'/Uploads\\2&quot;\\3&gt;\\4&lt;source\\5src\=&quot;'.C('SITEURL').'/Uploads\\6&quot;\\7&gt;\\8&lt;\/video&gt;', $data['content']);
-		    $data['content'] = preg_replace('/&lt;video([\s\S]*?)&lt;source([\s\S]*?)src\=&quot;\/Uploads([\s\S]*?)&quot;([\s\S]*?)&gt;([\s\S]*?)&lt;\/video&gt;/i','&lt;video\\1&lt;source\\2src\=&quot;'.C('SITEURL').'/Uploads\\3&quot;\\4&gt;\\5&lt;\/video&gt;', $data['content']);
+			$data['content'] = preg_replace('/&lt;video([\s\S]*?)&lt;source([\s\S]*?)src\=&quot;\/Uploads([\s\S]*?)&quot;([\s\S]*?)&gt;([\s\S]*?)&lt;\/video&gt;/i','&lt;video\\1&lt;source\\2src\=&quot;'.C('SITEURL').'/Uploads\\3&quot;\\4&gt;\\5&lt;\/video&gt;', $data['content']);
 		
+			// 报告正文按后台配置的分页符限制可阅读页数，0 表示不限。
+			if(in_array((int)$data['type'],array(3,4,5)) && (int)$data['read_page_limit'] > 0){
+				$pages=explode('_ueditor_page_break_tag_',$data['content']);
+				$page_limit=(int)$data['read_page_limit'];
+				$data['content']=implode('',array_slice($pages,0,$page_limit));
+			}
 			$data['content']=htmlspecialchars_decode(stripslashes($data['content']));
 		    $return_data=array();
 			$return_data['status'] = 1;
@@ -1858,63 +1867,62 @@ class WxapiController extends Controller {
 		}
 		$lastnd=$nownd-1;
 		
-		if($sel_yd5!=5){
-			$tvs1sql =" AND type2=4 AND nd='".$nownd."' AND jd='".$nowjd."'";
-			//同比，上一年这个季度
-			$tvs1sql1 =" AND type2=4 AND nd='".$lastnd."' AND jd='".$nowjd."'";
-		}elseif($sel_yd5==5){
-			//季度的数组
-			$arr_m=array();
-			for($i=0;$i<4;$i++){
-				if($i==0){
-					$aa=$nowjd;
-				}else{
-					$aa='Q'.($this->nowjd121-$i);
-				}
-				if($this->nowjd121-$i==0){
-					break;
-				}else{
-					$arr_m[]="jd='".$aa."'";
-				}
-			}
-			$tmp=implode(' OR ',$arr_m);
-			$tvs1sql =" AND type2=4 AND nd='".$nownd."' AND (".$tmp.")";//当前年
-			$tvs1sql1 =" AND type2=4 AND nd='".$lastnd."' AND (".$tmp.")";//上一年
-		}
-		$tvsdatalist=M('shuju_tvs')->where("type=12".$tvs1sql)->order('nd DESC,jd DESC,id DESC')->select();
-		
-		$tvsxl=array();
-		foreach($tvsdatalist as $k=>$v){
-			$tvsxl[$v['type2']]=$tvsxl[$v['type2']]+$v['ch'];//分类型销量
-		}
-		//同比：一般情况下是今年第n月与去年第n月比；环比：表示连续2个单位周期（比如连续两月）内量的变化比
-		//此次为同比
-		$tvslastdata=M('shuju_tvs')->where("type=12".$tvs1sql1)->order('nd DESC,jd DESC,id DESC')->select();
-		$tvslastxl=array();//销量
-		foreach($tvslastdata as $k=>$v){
-			$tvslastxl[$v['type2']]=$tvslastxl[$v['type2']]+$v['ch'];//分类型销量
-		}
-		//模板出货数据
+		//电子纸供应链：数据驱动遍历所有配置机型。各机型口径/单位不同（模组出货=季度、K，平板线上零售=月度、台），当期无数据不展示
 		$arr_sj7=array();
+		$dsidx=0;
 		foreach($this->arr_datascate3[12] as $k=>$v){
 			if($k==4){
-				if($tvsxl[$k] > $tvslastxl[$k]){
-					$tvscxl=$tvsxl[$k]-$tvslastxl[$k];
-					$tvsxlxb='+';//增长
+				//模组出货：季度（jd），ch 单位 K，转万台 /10
+				$div=10;
+				if($sel_yd5==5){
+					//季度的数组
+					$arr_m=array();
+					for($i=0;$i<4;$i++){
+						if($i==0){$aa=$nowjd;}else{$aa='Q'.($this->nowjd121-$i);}
+						if($this->nowjd121-$i==0){break;}
+						$arr_m[]="jd='".$aa."'";
+					}
+					$tmp=implode(' OR ',$arr_m);
+					$where_now=" AND type2=$k AND nd='".$nownd."' AND (".$tmp.")";//当前年
+					$where_last=" AND type2=$k AND nd='".$lastnd."' AND (".$tmp.")";//上一年
 				}else{
-					$tvscxl=$tvslastxl[$k]-$tvsxl[$k];
-					$tvsxlxb='-';//减少
+					$where_now=" AND type2=$k AND nd='".$nownd."' AND jd='".$nowjd."'";
+					$where_last=" AND type2=$k AND nd='".$lastnd."' AND jd='".$nowjd."'";
 				}
-				$arr=array();
-				$arr['id']=12;
-				$arr['ids']=3;
-				$arr['ds']=$k;
-				$arr['dss']=0;
-				$arr['t1']=$v;
-				$arr['t2']=!empty($tvsxl[$k])?sprintf('%.1f',round(($tvsxl[$k]/10),1)):0;//销量 默认是K，改为万
-				$arr['t3']=!empty($tvslastxl[$k])?$tvsxlxb.sprintf('%.1f',round(($tvscxl/$tvslastxl[$k])*100,0)).'%':'+0%';//销量百分比 day959 20220128 分母不能为0
-				$arr_sj7[]=$arr;
+			}else{
+				//平板线上零售等月度机型：ch 单位 个/台，转万台 /10000；取该机型最新一期（月）及上年同期
+				$div=10000;
+				$latest=M('shuju_tvs')->where("type=12 AND type2=$k")->order('nd DESC,yd DESC,id DESC')->find();
+				if(empty($latest) || empty($latest['yd'])){continue;}
+				$cur_nd=$latest['nd'];
+				$cur_yd=$latest['yd'];
+				$last_nd=$cur_nd-1;
+				$last_yd=sprintf('%02d.%s',$last_nd%100,substr($cur_yd,3));
+				$where_now=" AND type2=$k AND nd='".$cur_nd."' AND yd='".$cur_yd."'";
+				$where_last=" AND type2=$k AND nd='".$last_nd."' AND yd='".$last_yd."'";
 			}
+			$cur=M('shuju_tvs')->where("type=12".$where_now)->sum('ch');
+			$last=M('shuju_tvs')->where("type=12".$where_last)->sum('ch');
+			$cur=$cur?$cur:0;
+			$last=$last?$last:0;
+			if($cur<=0){continue;}//当期无数据，不展示
+			if($cur > $last){
+				$tvscxl=$cur-$last;
+				$tvsxlxb='+';//增长
+			}else{
+				$tvscxl=$last-$cur;
+				$tvsxlxb='-';//减少
+			}
+			$arr=array();
+			$arr['id']=12;
+			$arr['ids']=3;
+			$arr['ds']=$k;
+			$arr['dss']=$dsidx;
+			$arr['t1']=$v;
+			$arr['t2']=sprintf('%.1f',round(($cur/$div),1));//销量 单位随机型换算
+			$arr['t3']=!empty($last)?$tvsxlxb.sprintf('%.1f',round(($tvscxl/$last)*100,0)).'%':'+0%';
+			$arr_sj7[]=$arr;
+			$dsidx++;
 		}
 		$return_data['arr_sj7']=$arr_sj7;
 		//平板零售

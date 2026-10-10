@@ -133,9 +133,12 @@ class NewsController extends CheckController {
 		$arr['sjtype']=I('sjtype','',intval);
 		$arr['source']=I('source','',dhtmlspecialchars);
 		$arr['pic']=I('pic','',dhtmlspecialchars);
+		$arr['bannerpic']=I('bannerpic','',dhtmlspecialchars);
 		$arr['content']=I('content','',dhtmlspecialchars);
 		$arr['url']=I('url','',dhtmlspecialchars);
+		$arr['read_page_limit']=in_array($arr['type'],array(3,4,5)) ? max(0,I('read_page_limit','',intval)) : 0;
 		$arr['isrecommand']=I('isrecommand','',intval);
+		$arr['isbanner']=I('isbanner','',intval);
 		$arr['tag']=I('tag','',intval);
 		$arr['addtime']=I('addtime','',dhtmlspecialchars);
 		if($arr['addtime']){
@@ -148,6 +151,9 @@ class NewsController extends CheckController {
 		}
 		if(!$arr['type']){
 			$this->error("请选择新闻分类！");
+		}
+		if($arr['isbanner']==1 && !$arr['bannerpic']){
+			$this->error("勾选了活动Banner长图，请上传活动长图！");
 		}
 		$is_gzh=I('isgzh','',intval);
 		if($is_gzh==1){

@@ -31,6 +31,15 @@
                             </select>
                         </div>
                     </div>
+                    <div class="layui-form-item" id="read-page-limit">
+                        <label class="layui-form-label">
+                            可阅读页数
+                        </label>
+                        <div class="layui-input-block">
+                            <input type="number" name="read_page_limit" min="0" step="1" value="<?php echo (int)$data['read_page_limit']; ?>" placeholder="0 表示不限" class="layui-input">
+                            <div class="layui-form-mid layui-word-aux">仅报告生效；按正文中的分页符截取，0 表示不限制。</div>
+                        </div>
+                    </div>
                     <div class="layui-form-item">
                         <label class="layui-form-label">
                             产品分类
@@ -62,6 +71,21 @@
                               <div class="layui-upload-list" id="upload_pic_list1">
                                 <?php if($data['pic']){ ?>
                                 <p class="upload_pic"><a href="{$data['pic']}" target="_blank"><img class="upload_img" src="{$data['pic']}"></a><a class="uploda_del" onClick="return upload_del(this);"></a><input type="hidden" name="pic" value="{$data['pic']}"></p>
+                                <?php } ?>
+                              </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item" id="bannerpic-item">
+                        <label class="layui-form-label">
+                            活动长图
+                        </label>
+                        <div class="layui-input-block">
+                            <div class="layui-upload">
+                              <button type="button" class="layui-btn" id="upload_pic2">上传长图</button><span>（勾选"活动Banner长图=是"时必填，建议上传宽 750px 的整张长图，不裁剪）</span>
+                              <div class="layui-upload-list" id="upload_pic_list2">
+                                <?php if($data['bannerpic']){ ?>
+                                <p class="upload_pic"><a href="{$data['bannerpic']}" target="_blank"><img class="upload_img" src="{$data['bannerpic']}"></a><a class="uploda_del" onClick="return upload_del(this);"></a><input type="hidden" name="bannerpic" value="{$data['bannerpic']}"></p>
                                 <?php } ?>
                               </div>
                             </div>
@@ -109,6 +133,18 @@
                         <div class="layui-input-block">
                             <input type="radio" name="isrecommand" value="1" title="是" <?php if($data['isrecommand']==1 || !$data['id']){ ?>checked="checked"<?php } ?>>
                             <input type="radio" name="isrecommand" value="0" title="否" <?php if($data['isrecommand']==0 && $data['id']){ ?>checked="checked"<?php } ?>>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">
+                            活动Banner长图
+                        </label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="isbanner" value="1" title="是" <?php if($data['isbanner']==1){ ?>checked="checked"<?php } ?>>
+                            <input type="radio" name="isbanner" value="0" title="否" <?php if($data['isbanner']==0 || !$data['id']){ ?>checked="checked"<?php } ?>>
+                            <div class="layui-input-inline" style="margin-left:20px;">
+                                <span style="color:#999;font-size:12px;">勾选"是"：在活动专区以整张大图Banner展示（建议上传长图封面）；否则按普通标题+图列表展示。</span>
+                            </div>
                         </div>
                     </div>
                     <div class="layui-form-item">
@@ -173,6 +209,26 @@
 				  }
 			  }
 			});
+			// 活动长图：不传 w/h，保留原始长图，避免被居中裁剪
+			var uploadInst2 = upload.render({
+			  elem: '#upload_pic2'
+			  ,url: "{:U('Ajax/uploadimg')}"
+			  ,method: 'post'
+			  ,before:function(obj){
+				  loadingIndex = layer.load(1, {
+					  shade: [0.5,'#000']
+				  });
+			  }
+			  ,done: function(res){
+				  layer.close(loadingIndex);
+				  if(res.code > 0){
+					  return layer.msg(res.msg);
+				  }else{
+					  var html='<p class="upload_pic"><a href="'+res.src+'" target="_blank"><img class="upload_img" src="'+res.src+'"></a><a class="uploda_del" onClick="return upload_del(this);"></a><input type="hidden" name="bannerpic" value="'+res.src+'"></p>';
+					  $('#upload_pic_list2').html(html);
+				  }
+			  }
+			});
 			form.on('radio(isgzh)',function(data) {
 				var is_gzh=data.value;
 				if(is_gzh==1){
@@ -183,9 +239,26 @@
 					$('#contentd').show();
 				}
 			});
+			function toggleReadPageLimit(type) {
+				if(type == 3 || type == 4 || type == 5){
+					$('#read-page-limit').show();
+				}else{
+					$('#read-page-limit').hide();
+				}
+			}
+			toggleReadPageLimit($('select[name="type"]').val());
+			form.on('select', function(data) {
+				if(data.elem.name == 'type'){
+					toggleReadPageLimit(data.value);
+				}
+			});
 			//监听提交
 			form.on('submit(add)',function(data) {
 				var data = data.field;
+				if(data.isbanner == 1 && !data.bannerpic){
+					layer.msg('勾选了活动Banner长图，请上传活动长图', {icon:5});
+					return false;
+				}
 				$.ajax({
 					type:"post",
 					url:"{:U('News/doadd')}",

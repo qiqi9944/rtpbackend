@@ -74,10 +74,12 @@
                             <th width="60">新闻分类</th>
                             <th width="80">产品分类</th>
                             <th width="120">封面图</th>
+                            <th width="120">活动长图</th>
                             <th width="60">发布人</th>
                             <th width="80">发布时间</th>
                             <th width="60">浏览量</th>
                             <th width="60">是否显示</th>
+                            <th width="60">活动Banner</th>
                             <th width="50">操作</th>
                         </tr>
                         </thead>
@@ -91,12 +93,17 @@
                             <td>{$arr_newstype[$v['type']]}</td>
                             <td><?php if($v['sjtype']){ ?>{$arr_sjtype[$v['sjtype']]}<?php }else{ ?>不限<?php } ?></td>
                             <td><?php if($v['pic']){ ?><img src="{$v['pic']}" width="100"><?php } ?></td>
+                            <td><?php if($v['bannerpic']){ ?><img src="{$v['bannerpic']}" width="100"><?php } ?></td>
                             <td>{$v['fbr']}</td>
                             <td><?php echo date('Y-m-d',$v['addtime']); ?></td>
                             <td>{$v['click']}</td>
                             <td class="td-status">
                             <?php if($v['isrecommand']==1){ ?><span class="layui-btn layui-btn-normal " > 是 </span><?php } ?>
                             <?php if($v['isrecommand']==0){ ?><span class="layui-btn layui-btn-danger " > 否 </span><?php } ?>
+                            </td>
+                            <td class="td-status">
+                            <?php if($v['isbanner']==1){ ?><span class="layui-btn layui-btn-normal " > 是 </span><?php } ?>
+                            <?php if($v['isbanner']==0 || !$v['isbanner']){ ?><span class="layui-btn layui-btn-danger " > 否 </span><?php } ?>
                             </td>
                             <td class="td-manage">
                                 <a title="编辑" href="javascript:;" onClick="xadmin.open('编辑','{:U('News/add',array('id'=>$v['id']))}','800')"
@@ -110,7 +117,7 @@
                         </tr>
                         </volist>
                         <tr>
-                            <td colspan="11">
+                            <td colspan="13">
                             <button class="layui-btn layui-btn-danger" lay-filter="save" lay-submit=""><i class="layui-icon">&#xe642;</i>提交</button>
                             </td>
                         </tr>
