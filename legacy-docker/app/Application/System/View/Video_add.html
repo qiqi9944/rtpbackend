@@ -45,11 +45,11 @@
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">
-                <span class='x-red'>*</span>封面图
+                封面图
             </label>
             <div class="layui-input-block">
                 <div class="layui-upload">
-                  <button type="button" class="layui-btn" id="upload_pic1">上传图片</button><span>（建议尺寸：4:3 或 16:9）</span>
+                  <button type="button" class="layui-btn" id="upload_pic1">上传图片</button><span>（选填，建议 16:9；不上传则用视频号自带封面/占位图）</span>
                   <div class="layui-upload-list" id="upload_pic_list1">
                     <?php if($data['pic']){ ?>
                     <p class="upload_pic"><a href="{$data['pic']}" target="_blank"><img class="upload_img" src="{$data['pic']}"></a><a class="uploda_del" onClick="return upload_del(this);"></a><input type="hidden" name="pic" value="{$data['pic']}"></p>

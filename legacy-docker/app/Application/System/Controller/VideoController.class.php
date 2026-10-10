@@ -87,9 +87,6 @@ class VideoController extends CheckController {
 		if(!$arr['url'] && !$arr['feed_id'] && !$arr['feed_token']){
 			$this->error("请输入视频地址，或视频号 feedId / feedToken！");
 		}
-		if(!$arr['pic']){
-			$this->error("请上传封面图！");
-		}
 		if($id){
 			M('video')->where("id='$id'")->save($arr);
 		}else{
