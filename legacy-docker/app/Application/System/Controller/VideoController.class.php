@@ -54,13 +54,17 @@ class VideoController extends CheckController {
 	}
 	public function add(){
 		$id=I('id','',intval);
+		$data=array();
 		if($id){
 			$data=M('video')->where("id='$id'")->find();
 			if(!$data){
 				$this->error("该视频不存在！",1);
 			}
-			$this->data=$data;
 		}
+		if(empty($data['finder_user_name'])){
+			$data['finder_user_name']=C('VIDEO_FINDER');
+		}
+		$this->data=$data;
 		$this->display();
 	}
 	public function doadd(){
@@ -75,6 +79,9 @@ class VideoController extends CheckController {
 		$arr['name']=I('name','',dhtmlspecialchars);
 		$arr['url']=I('url','',dhtmlspecialchars);
 		$arr['finder_user_name']=I('finder_user_name','',dhtmlspecialchars);
+		if(!$arr['finder_user_name']){
+			$arr['finder_user_name']=C('VIDEO_FINDER');
+		}
 		$arr['feed_id']=I('feed_id','',dhtmlspecialchars);
 		$arr['feed_token']=I('feed_token','',dhtmlspecialchars);
 		$arr['pic']=I('pic','',dhtmlspecialchars);

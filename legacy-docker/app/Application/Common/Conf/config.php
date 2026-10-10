@@ -17,6 +17,9 @@ return array(
 	
 	'SITEURL' => 'https://api.runtotech.com',
 	'SITENAME' => '洛图科技后台管理系统',
+
+	// 观研-小视频：默认视频号ID（录入视频号视频时自动带上，无需后台每次填写）
+	'VIDEO_FINDER' => 'sphHhMTg5VP7LFO',
 	
 	'Lt_datascate1' =>array('1'=>'智能硬件IOT','2'=>'商用显示PID','3'=>'显示供应链DSC'),
 	'Lt_datascate2' =>array(

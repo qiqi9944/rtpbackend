@@ -925,6 +925,9 @@ class WxapiController extends Controller {
 		$datalist = M('video')->where($sql)->field('id,name,url,finder_user_name,feed_id,feed_token,pic,description,addtime')->order("displayorder DESC,id DESC")->limit($limit,$lm)->select();
 		foreach($datalist as $k=>$v){
 			$v['addtime']=date('Y-m-d',$v['addtime']);
+			if(!$v['finder_user_name'] && ($v['feed_id'] || $v['feed_token'])){
+				$v['finder_user_name']=C('VIDEO_FINDER');
+			}
 			if($v['pic']){
 				$v['pic']=C('SITEURL').$v['pic'];
 			}
