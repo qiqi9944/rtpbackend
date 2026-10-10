@@ -74,6 +74,9 @@ class VideoController extends CheckController {
 		$arr=array();
 		$arr['name']=I('name','',dhtmlspecialchars);
 		$arr['url']=I('url','',dhtmlspecialchars);
+		$arr['finder_user_name']=I('finder_user_name','',dhtmlspecialchars);
+		$arr['feed_id']=I('feed_id','',dhtmlspecialchars);
+		$arr['feed_token']=I('feed_token','',dhtmlspecialchars);
 		$arr['pic']=I('pic','',dhtmlspecialchars);
 		$arr['description']=I('description','',dhtmlspecialchars);
 		$arr['isrecommand']=I('isrecommand','',intval);
@@ -81,8 +84,8 @@ class VideoController extends CheckController {
 		if(!$arr['name']){
 			$this->error("请输入视频标题！");
 		}
-		if(!$arr['url']){
-			$this->error("请输入视频地址！");
+		if(!$arr['url'] && !$arr['feed_id'] && !$arr['feed_token']){
+			$this->error("请输入视频地址，或视频号 feedId / feedToken！");
 		}
 		if(!$arr['pic']){
 			$this->error("请上传封面图！");

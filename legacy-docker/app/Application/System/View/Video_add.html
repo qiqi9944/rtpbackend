@@ -13,10 +13,34 @@
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">
-                <span class='x-red'>*</span>视频地址
+                视频地址
             </label>
             <div class="layui-input-block">
-                <input type="text" name="url" autocomplete="off" value="{$data['url']}" lay-verify="required" class="layui-input" placeholder="请输入可直接播放的视频 URL（如 mp4 链接）">
+                <input type="text" name="url" autocomplete="off" value="{$data['url']}" class="layui-input" placeholder="普通视频可直接播放的 URL（如 mp4 链接），与下方视频号二选一">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">
+                视频号ID
+            </label>
+            <div class="layui-input-block">
+                <input type="text" name="finder_user_name" autocomplete="off" value="{$data['finder_user_name']}" class="layui-input" placeholder="视频号ID，sph 开头，视频号助手首页可查（内嵌视频号视频时必填）">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">
+                feedId
+            </label>
+            <div class="layui-input-block">
+                <input type="text" name="feed_id" autocomplete="off" value="{$data['feed_id']}" class="layui-input" placeholder="与小程序的视频号同主体时填写：视频号助手→动态管理复制 feedId">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">
+                feedToken
+            </label>
+            <div class="layui-input-block">
+                <input type="text" name="feed_token" autocomplete="off" value="{$data['feed_token']}" class="layui-input" placeholder="非同主体（他人视频号）时填写：手机端复制该视频的 feedToken（不可自动播放）">
             </div>
         </div>
         <div class="layui-form-item">

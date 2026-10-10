@@ -104,6 +104,31 @@ else
     else
         echo "[!] 服务器无 mysql 命令也未检测到 Docker，请手动在 phpMyAdmin 中执行 lt_video.sql"
     fi
+
+    # 2.1) 升级 lt_video 视频号字段（已存在时报错可忽略）
+    if [ "$MODE" = "local" ]; then
+        MIG="$LOCAL/lt_video_channel.sql"
+    else
+        MIG="$TMP/lt_video_channel.sql"
+        curl -fsSL -m 60 "$SRC_REPO/mysql/init/lt_video_channel.sql" -o "$MIG" 2>/dev/null || MIG=""
+    fi
+    if [ -n "$MIG" ] && [ -f "$MIG" ] && grep -q "ALTER TABLE" "$MIG"; then
+        if [ -n "$MYSQL_CONTAINER" ]; then
+            if docker exec -i "$MYSQL_CONTAINER" mysql -h127.0.0.1 -u"$DB_USER" -p"$DB_PWD" "$DB_NAME" < "$MIG" 2>/dev/null; then
+                echo "    ✓ lt_video 视频号字段已升级"
+            else
+                echo "    (视频号字段可能已存在；如未升级请手动执行 lt_video_channel.sql)"
+            fi
+        elif command -v mysql >/dev/null 2>&1; then
+            MYSQL_HOST="${DB_HOST:-localhost}"
+            [ "$MYSQL_HOST" = "legacy-mysql" ] && MYSQL_HOST="localhost"
+            if mysql -h"$MYSQL_HOST" -u"$DB_USER" -p"$DB_PWD" "$DB_NAME" < "$MIG" 2>/dev/null; then
+                echo "    ✓ lt_video 视频号字段已升级"
+            else
+                echo "    (视频号字段可能已存在；如未升级请手动执行 lt_video_channel.sql)"
+            fi
+        fi
+    fi
 fi
 
 rm -rf "$TMP"

@@ -922,7 +922,7 @@ class WxapiController extends Controller {
 		$lm=12;
 		$limit=($page-1)*$lm;
 		$sql="isrecommand=1";
-		$datalist = M('video')->where($sql)->field('id,name,url,pic,description,addtime')->order("displayorder DESC,id DESC")->limit($limit,$lm)->select();
+		$datalist = M('video')->where($sql)->field('id,name,url,finder_user_name,feed_id,feed_token,pic,description,addtime')->order("displayorder DESC,id DESC")->limit($limit,$lm)->select();
 		foreach($datalist as $k=>$v){
 			$v['addtime']=date('Y-m-d',$v['addtime']);
 			if($v['pic']){

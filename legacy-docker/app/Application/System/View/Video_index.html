@@ -47,7 +47,7 @@
                             <th width="80">视频标题</th>
                             <th width="120">封面图</th>
                             <th>视频描述</th>
-                            <th width="200">视频地址</th>
+                            <th width="220">视频来源</th>
                             <th width="60">播放量</th>
                             <th width="60">录入人</th>
                             <th width="80">录入时间</th>
@@ -62,7 +62,13 @@
                             <td>{$v['name']}</td>
                             <td><?php if($v['pic']){ ?><img src="{$v['pic']}" width="100"><?php } ?></td>
                             <td>{$v['description']}</td>
-                            <td style="word-break:break-all;">{$v['url']}</td>
+                            <td style="word-break:break-all;">
+                            <?php if($v['feed_id'] || $v['feed_token']){ ?>
+                            视频号：{$v['finder_user_name']}<br>
+                            <?php if($v['feed_id']){ ?>feedId：{$v['feed_id']}<br><?php } ?>
+                            <?php if($v['feed_token']){ ?>feedToken：{$v['feed_token']}<?php } ?>
+                            <?php }else{ ?>{$v['url']}<?php } ?>
+                            </td>
                             <td>{$v['click']}</td>
                             <td>{$v['fbr']}</td>
                             <td><?php echo date('Y-m-d',$v['addtime']); ?></td>
