@@ -3699,8 +3699,13 @@ class WxapiController extends Controller {
 				$bn=$v['chl'];$be=$v['xse'];
 				$ln=isset($brand_last[$k])?$brand_last[$k]['chl']:0;
 				$le=isset($brand_last[$k])?$brand_last[$k]['xse']:0;
-				$share_now=!empty($xl)?($bn/$xl)*100:0;
-				$share_last=!empty($lastxl)?($ln/$lastxl)*100:0;
+				//市占率口子与总量一致：type=7/18 数量÷1000、销额÷100；并按 sel_xl 选量/额，避免超过100%
+				$bn_scale=($sel_xl==1)?($type==7||$type==18?$bn/1000:$bn):$bn;
+				$be_scale=($sel_xl==2)?($type==7||$type==18?$be/100:$be):$be;
+				$ln_scale=($sel_xl==1)?($type==7||$type==18?$ln/1000:$ln):$ln;
+				$le_scale=($sel_xl==2)?($type==7||$type==18?$le/100:$le):$le;
+				$share_now=!empty($xl)?(($sel_xl==1?$bn_scale:$be_scale)/$xl)*100:0;
+				$share_last=!empty($lastxl)?(($sel_xl==1?$ln_scale:$le_scale)/$lastxl)*100:0;
 				$share_c=$share_now-$share_last;
 				$price_now=!empty($bn)?($be/$bn)*1000:0;
 				$price_last=!empty($ln)?($le/$ln)*1000:0;
