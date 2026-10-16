@@ -4550,7 +4550,8 @@ class WxapiController extends Controller {
 							$arr_sj5[$v['gy2']]=$arr_sj5[$v['gy2']]+$v['ch'];
 						}elseif($sel_ds==4){
 							$arr_sj4[$v['gy2']]=$arr_sj4[$v['gy2']]+$v['ch'];
-							//$arr_sj5[$v['chc']]=$arr_sj5[$v['chc']]+$v['ch'];
+							//电子纸(模组出货)：尺寸分布对齐电视供应链
+							$arr_sj5[$v['chc']]=$arr_sj5[$v['chc']]+$v['ch'];
 						}elseif($sel_ds==5){
 							$arr_sj4[$v['chc']]=$arr_sj4[$v['chc']]+$v['ch'];
 						}elseif($sel_ds==9){
@@ -4588,7 +4589,7 @@ class WxapiController extends Controller {
 					if($sel_xl==1){
 						if($sel_ds==1){
 							$arr_sj5_last[$v['gy2']]=$arr_sj5_last[$v['gy2']]+$ch;
-						}elseif($sel_ds==2 || $sel_ds==8 || $sel_ds==9 || $sel_ds==12){
+						}elseif($sel_ds==2 || $sel_ds==4 || $sel_ds==8 || $sel_ds==9 || $sel_ds==12){
 							$arr_sj5_last[$v['chc']]=$arr_sj5_last[$v['chc']]+$ch;
 						}
 					}elseif($sel_xl==2){
@@ -4713,7 +4714,7 @@ class WxapiController extends Controller {
 					$arr['t1']='尺寸';
 				}elseif($sel_ds==4){
 					$arr['t1']='应用场景';
-					//$arr['t2']='尺寸';
+					$arr['t2']='尺寸';
 				}elseif($sel_ds==5){
 					$arr['t1']='产品类型';
 				}elseif($sel_ds==8){
