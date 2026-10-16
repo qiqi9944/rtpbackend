@@ -43,7 +43,15 @@ class WxapiController extends Controller {
 			$weixin_json = json_decode($weixin_json);
 			$openid=$weixin_json->openid;
 			if($openid){
-				$hduser = M('user')->where("type=2 AND openid='".$openid."'")->find();
+				$hduser=array();
+				//优先按已授权的微信手机号匹配已存在账号（微信手机号已验证，可将 openid 绑定到该账号，展示其真实资料）
+				if($phone){
+					$hduser = M('user')->where("type=2 AND phone='".$phone."'")->find();
+				}
+				//其次按 openid 匹配
+				if(empty($hduser)){
+					$hduser = M('user')->where("type=2 AND openid='".$openid."'")->find();
+				}
 				if(empty($hduser)){
 					$arr=array();
 					$arr['type']=2;
@@ -57,10 +65,15 @@ class WxapiController extends Controller {
 					$arr['addtime']=time();
 					$id=M('user')->add($arr);
 					$hduser = M('user')->where("id='$id'")->find();
-				}elseif($phone && $phone!=$hduser['phone']){
-					//已有账号：用微信授权的手机号补充/更新绑定
-					M('user')->where("id='".$hduser['id']."'")->save(array('phone'=>$phone));
-					$hduser['phone']=$phone;
+				}else{
+					//已存在账号：补绑 openid / 更新手机号
+					$save=array();
+					if(empty($hduser['openid'])){$save['openid']=$openid;}
+					if($phone && $phone!=$hduser['phone']){$save['phone']=$phone;}
+					if($save){
+						M('user')->where("id='".$hduser['id']."'")->save($save);
+						$hduser=array_merge($hduser,$save);
+					}
 				}
 				if(empty($hduser['username'])){
 					$hduser['username']='游客'.$hduser['id'];
