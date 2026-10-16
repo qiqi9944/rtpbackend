@@ -45,8 +45,12 @@ class WxapiController extends Controller {
 			if($openid){
 				$hduser=array();
 				//优先按已授权的微信手机号匹配已存在账号（微信手机号已验证，可将 openid 绑定到该账号，展示其真实资料）
+				//同号多账号时优先取已完善公司资料的正式账号，避免命中自动生成的游客账号
 				if($phone){
-					$hduser = M('user')->where("type=2 AND phone='".$phone."'")->find();
+					$hduser = M('user')->where("type=2 AND phone='".$phone."' AND companyname!='' AND companyname IS NOT NULL")->find();
+					if(empty($hduser)){
+						$hduser = M('user')->where("type=2 AND phone='".$phone."'")->find();
+					}
 				}
 				//其次按 openid 匹配
 				if(empty($hduser)){
