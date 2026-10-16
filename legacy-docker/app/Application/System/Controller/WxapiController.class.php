@@ -57,6 +57,10 @@ class WxapiController extends Controller {
 					$arr['addtime']=time();
 					$id=M('user')->add($arr);
 					$hduser = M('user')->where("id='$id'")->find();
+				}elseif($phone && $phone!=$hduser['phone']){
+					//已有账号：用微信授权的手机号补充/更新绑定
+					M('user')->where("id='".$hduser['id']."'")->save(array('phone'=>$phone));
+					$hduser['phone']=$phone;
 				}
 				if(empty($hduser['username'])){
 					$hduser['username']='游客'.$hduser['id'];
@@ -2754,6 +2758,9 @@ class WxapiController extends Controller {
 		//echo '<pre>';print_r($this->nownd119);exit;
 		
 		$type=I('type','',intval);
+		//变化口径：同比(yoy)/环比(mom)，影响品牌市占增减、产品结构占比增减
+		$sel_change=I('sel_change','',dhtmlspecialchars);
+		$sel_change=($sel_change=='mom')?'mom':'yoy';
 		//根据type，查找分类数组
 		$arr_datascate2=C('Lt_datascate2');
 		$arr_type=array();
@@ -2799,6 +2806,7 @@ class WxapiController extends Controller {
 			}
 			$mkd=function($y,$m){return date('Y.m',mktime(0,0,0,$m,1,$y));};
 			$mks=function($y,$m){return date('y.m',mktime(0,0,0,$m,1,$y));};
+			$sql0='';//环比：上一期筛选条件
 			$curM=date('n',$this->nowtime);
 			$curY=date('Y',$this->nowtime);
 			$curQ=ceil($curM/3);
@@ -2825,8 +2833,17 @@ class WxapiController extends Controller {
 					}
 					$sql=" AND (".implode(' OR ',$arr1).")";//选中季度
 					$sql1=" AND (".implode(' OR ',$arr2).")";//去年同期季度
+					//环比：上一个季度
+					$tpq=strtotime('-3 month',$tq);
+					$pnd=date('Y',$tpq);$pq=ceil(date('n',$tpq)/3);
+					$pms=array($pq*3-2,$pq*3-1,$pq*3);
+					$arr0=array();
+					foreach($pms as $m){
+						$arr0[]="(yd='".$mkd($pnd,$m)."' OR yd='".$mks($pnd,$m)."')";
+					}
+					$sql0=" AND (".implode(' OR ',$arr0).")";
 				}
-				$return_data['arr_sj']="数据口径为线上监测和同比（按季度汇总）";
+				$return_data['arr_sj']="数据口径为线上监测和".($sel_change=='mom'?'环比':'同比')."（按季度汇总）";
 			}else{
 				if($sel_yd==13){
 					//年份和月份
@@ -2855,11 +2872,14 @@ class WxapiController extends Controller {
 					}
 					$nownd=date('Y',$nowtime);
 				}
-				$return_data['arr_sj']="数据口径为线上监测和同比";
+				$return_data['arr_sj']="数据口径为线上监测和".($sel_change=='mom'?'环比':'同比')."";
 				if($sel_yd!=13){
 					$sql =" AND yd='".$nowyd."'";
 					//同比，上一年这个月
 					$sql1 =" AND yd='".$lastm."'";
+					//环比：上一个月
+					$prevyd=($type==3 || $type==4 || $type==13 || $type==15 || $type==19)?date('Y.m',strtotime('-1 month',$nowtime)):date('y.m',strtotime('-1 month',$nowtime));
+					$sql0 =" AND yd='".$prevyd."'";
 				}elseif($sel_yd==13){
 				//月的数组
 				$arr_m1=array();
@@ -2967,6 +2987,13 @@ class WxapiController extends Controller {
 				$lastxe=$lastxe+$v['xe'];
 			}
 			$lastpjjg=!empty($lastxl)?round(($lastxe/$lastxl),0):0;
+			//环比：以上一期为对比基准（有上一期数据时覆盖同比基准，供品牌/结构/总览统一使用）
+			if($sel_change=='mom' && $sql0){
+				$prevdata=M('shuju_iot')->where("type='$type'".$sql0.$sqlds)->order('nd DESC,yd DESC,id DESC')->select();
+				$prevxl=0;$prevxe=0;
+				foreach($prevdata as $k=>$v){$prevxl=$prevxl+$v['xl'];$prevxe=$prevxe+$v['xe'];}
+				if($prevdata){$lastdata=$prevdata;$lastxl=$prevxl;$lastxe=$prevxe;$lastpjjg=!empty($prevxl)?round(($prevxe/$prevxl),0):0;}
+			}
 			if($xl > $lastxl){
 				$cxl=$xl-$lastxl;
 				$xlxb='+';//增长
@@ -3399,12 +3426,17 @@ class WxapiController extends Controller {
 			}
 			$lastnd=$nownd-1;
 			//$return_data['arr_sj']="数据截止到".$nownd."年第".$this->nowjd."季度";
-		    $return_data['arr_sj']="数据口径为全渠道出货和同比";
+		    $return_data['arr_sj']="数据口径为全渠道出货和".($sel_change=='mom'?'环比':'同比')."";
 			
+			$sql0='';//环比：上一期筛选条件
 			if($sel_yd!=5){
 				$sql =" AND nd='".$nownd."' AND jd='".$nowjd."'";
 				//同比，上一年这个季度
 				$sql1 =" AND nd='".$lastnd."' AND jd='".$nowjd."'";
+				//环比：上一个季度
+				$pq_num=str_replace('Q','',$nowjd);
+				$tpq=strtotime('-3 month',mktime(0,0,0,$pq_num*3-2,1,$nownd));
+				$sql0 =" AND nd='".date('Y',$tpq)."' AND jd='Q".ceil(date('n',$tpq)/3)."'";
 			}elseif($sel_yd==5){
 				//季度的数组
 				$arr_m=array();
@@ -3514,6 +3546,16 @@ class WxapiController extends Controller {
 				$lastxe=$lastxe+$v['xse'];
 			}
 			$lastpjjg=!empty($lastxl)?round((($lastxe*1000000)/($lastxl*1000)),0):0;
+			//环比：以上一期为对比基准（有上一期数据时覆盖同比基准）
+			if($sel_change=='mom' && $sql0){
+				$prevdata=M('shuju_pid')->where("type='$type'".$sqlcj.$sql0.$sqlds)->order('nd DESC,jd DESC,id DESC')->select();
+				$prevxl=0;$prevxe=0;
+				foreach($prevdata as $k=>$v){
+					if($type==7 || $type==18){$v['chl']=$v['chl']/1000;$v['xse']=$v['xse']/100;}
+					$prevxl=$prevxl+$v['chl'];$prevxe=$prevxe+$v['xse'];
+				}
+				if($prevdata){$lastdata=$prevdata;$lastxl=$prevxl;$lastxe=$prevxe;$lastpjjg=!empty($prevxl)?round((($prevxe*1000000)/($prevxl*1000)),0):0;}
+			}
 			if($xl > $lastxl){
 				$cxl=$xl-$lastxl;
 				$xlxb='+';//增长
@@ -3947,6 +3989,7 @@ class WxapiController extends Controller {
 			if($sel_ytd==1){
 				$sel_yd=($sel_ds==1 || $sel_ds==4 || $sel_ds==9)?5:13;//季度口径子类=5，月度口径子类=13
 			}
+			$sql0='';//环比：上一期筛选条件
 			if($sel_ds==4){
 				$this->nowjd91=$this->nowjd121;
 				$this->nownd91=$this->nownd121;
@@ -4041,13 +4084,17 @@ class WxapiController extends Controller {
 			if($sel_ds==10 || $type==9){//2025-01-02电视供应链去掉qiejing
 				$return_data['arr_sj']="";
 			}else{
-				$return_data['arr_sj']="数据口径为线上监测和同比";
+				$return_data['arr_sj']="数据口径为线上监测和".($sel_change=='mom'?'环比':'同比')."";
 			}
 			if($sel_ds==1 || $sel_ds==4 || $sel_ds==9){//品牌出货按季度
 				if($sel_yd!=5){
 					$sql =" AND nd='".$nownd."' AND jd='".$nowjd."'";
 					//同比，上一年这个季度
 					$sql1 =" AND nd='".$lastnd."' AND jd='".$nowjd."'";
+					//环比：上一个季度
+					$pq_num=str_replace('Q','',$nowjd);
+					$tpq=strtotime('-3 month',mktime(0,0,0,$pq_num*3-2,1,$nownd));
+					$sql0 =" AND nd='".date('Y',$tpq)."' AND jd='Q".ceil(date('n',$tpq)/3)."'";
 				}elseif($sel_yd==5){
 					//季度的数组
 					$arr_m=array();
@@ -4072,6 +4119,9 @@ class WxapiController extends Controller {
 					$sql =" AND nd='".$nownd."' AND yd='".$nowyd."'";
 					//同比，上一年这个月
 					$sql1 =" AND nd='".$lasty."' AND yd='".$lastm."'";
+					//环比：上一个月
+					$prevyd=($sel_ds==2)?date('M',strtotime('-1 month',$nowtime)):date('y.m',strtotime('-1 month',$nowtime));
+					$sql0 =" AND nd='".date('Y',strtotime('-1 month',$nowtime))."' AND yd='".$prevyd."'";
 				}elseif($sel_yd==13){
 					//月的数组
 					$arr_m1=array();
@@ -4196,6 +4246,16 @@ class WxapiController extends Controller {
 			if($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==12){
 				$lastpjjg=!empty($lastxl)?round(($lastxe/$lastxl),0): 0;
 			}
+			//环比：以上一期为对比基准（有上一期数据时覆盖同比基准）
+			if($sel_change=='mom' && $sql0){
+				$prevdata=M('shuju_tvs')->where("type='$type'".$sql0.$sqlds)->order('nd DESC,jd DESC,yd DESC,id DESC')->select();
+				$prevxl=0;$prevxe=0;
+				foreach($prevdata as $k=>$v){
+					if($v['type2']==11){$v['ch']=$v['ch']/1000;}
+					$prevxl=$prevxl+$v['ch'];$prevxe=$prevxe+$v['xe'];
+				}
+				if($prevdata){$lastdata=$prevdata;$lastxl=$prevxl;$lastxe=$prevxe;if($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==12){$lastpjjg=!empty($prevxl)?round(($prevxe/$prevxl),0):0;}}
+			}
 			if($xl > $lastxl){
 				$cxl=$xl-$lastxl;
 				$xlxb='+';//增长
@@ -4255,6 +4315,14 @@ class WxapiController extends Controller {
 			//echo '<pre>';print_r($arr_sj1);exit;
 			$return_data['arr_sj1']=$arr_sj1;
 			
+			//平均价格数据是否存在：按所选子口径是否带销额（xe）判断，有则算、没有则不算（前端“有就加没有就不加”）
+			$price_ok=($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==12);
+			if(!$price_ok && $sel_ds){
+				foreach($datalist as $pv){
+					if(isset($pv['xe']) && $pv['xe']!=='' && $pv['xe']!==null && $pv['xe']!=0){$price_ok=true;break;}
+				}
+			}
+			
 			//市场规模变化
 			$arr_sj2=array();
 			$arr_sort2=array();
@@ -4291,7 +4359,7 @@ class WxapiController extends Controller {
 						$arr['num']=round(($chart_value/$chart_divisor),1);
 						$arr['yoy']=$this->chartRate($chart_value,$year_value);
 						$arr['mom']=$this->chartRate($chart_value,$prev_value);
-						$has_price=($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==12);
+						$has_price=$price_ok;
 						$arr['avg']=$has_price && !empty($chart_xl)?round(($chart_xe/$chart_xl),0):null;
 						$year_avg=$has_price && !empty($year_xl)?($year_xe/$year_xl):0;
 						$prev_avg=$has_price && !empty($prev_xl)?($prev_xe/$prev_xl):0;
@@ -4370,7 +4438,7 @@ class WxapiController extends Controller {
 						$arr['num']=round(($chart_value/$chart_divisor),1);
 						$arr['yoy']=$this->chartRate($chart_value,$year_value);
 						$arr['mom']=$this->chartRate($chart_value,$prev_value);
-						$has_price=($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==12);
+						$has_price=$price_ok;
 						$arr['avg']=$has_price && !empty($chart_xl)?round(($chart_xe/$chart_xl),0):null;
 						$year_avg=$has_price && !empty($year_xl)?($year_xe/$year_xl):0;
 						$prev_avg=$has_price && !empty($prev_xl)?($prev_xe/$prev_xl):0;
@@ -4405,7 +4473,7 @@ class WxapiController extends Controller {
 						$arr['num']=round(($chart_value/$chart_divisor),1);
 						$arr['yoy']=$this->chartRate($chart_value,$prev_value);
 						$arr['mom']=null;
-						$has_price=($sel_ds==5 || $sel_ds==8 || $sel_ds==10 || $sel_ds==12);
+						$has_price=$price_ok;
 						$arr['avg']=$has_price && !empty($chart_xl)?round(($chart_xe/$chart_xl),0):null;
 						$prev_avg=$has_price && !empty($prev_xl)?($prev_xe/$prev_xl):0;
 						$arr['avg_yoy']=$has_price?$this->chartRate($arr['avg'],$prev_avg):null;
