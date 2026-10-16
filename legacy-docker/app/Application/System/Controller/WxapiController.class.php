@@ -4036,9 +4036,8 @@ class WxapiController extends Controller {
 				}
 			}
 			$return_data['arr_ds']=$arr_ds;
-			//销量数组
-			//$arr_xl=array('0'=>array('id'=>'1','name'=>'出货量'));
-			$arr_xl=array('0'=>array('id'=>'1','name'=>'销量'),'1'=>array('id'=>'2','name'=>'销额'));
+			//口径数组：上游供应链只有出货量，无“额”维度
+			$arr_xl=array('0'=>array('id'=>'1','name'=>'出货量'));
 			$return_data['arr_xl']=$arr_xl;
 			//月度数组
 			$arr_ss1=array();
@@ -4532,8 +4531,11 @@ class WxapiController extends Controller {
 						}elseif($sel_ds==4){
 							$arr_sj4[$v['gy2']]=$arr_sj4[$v['gy2']]+$v['ch'];
 							//$arr_sj5[$v['chc']]=$arr_sj5[$v['chc']]+$v['ch'];
-						}elseif($sel_ds==5 || $sel_ds==9){
+						}elseif($sel_ds==5){
 							$arr_sj4[$v['chc']]=$arr_sj4[$v['chc']]+$v['ch'];
+						}elseif($sel_ds==9){
+							//商用显示供应链（交互平板面板）：尺寸分布对齐电视供应链
+							$arr_sj5[$v['chc']]=$arr_sj5[$v['chc']]+$v['ch'];
 						}elseif($sel_ds==8 || $sel_ds==12){
 							$arr_sj4[$v['gy2']]=$arr_sj4[$v['gy2']]+$v['ch'];
 							$arr_sj5[$v['chc']]=$arr_sj5[$v['chc']]+$v['ch'];
@@ -4566,7 +4568,7 @@ class WxapiController extends Controller {
 					if($sel_xl==1){
 						if($sel_ds==1){
 							$arr_sj5_last[$v['gy2']]=$arr_sj5_last[$v['gy2']]+$ch;
-						}elseif($sel_ds==2 || $sel_ds==8 || $sel_ds==12){
+						}elseif($sel_ds==2 || $sel_ds==8 || $sel_ds==9 || $sel_ds==12){
 							$arr_sj5_last[$v['chc']]=$arr_sj5_last[$v['chc']]+$ch;
 						}
 					}elseif($sel_xl==2){
@@ -4698,7 +4700,8 @@ class WxapiController extends Controller {
 					$arr['t1']='产品类型';
 					$arr['t2']='屏幕尺寸';
 				}elseif($sel_ds==9){
-					$arr['t1']='尺寸';
+					//交互平板面板：尺寸作为「尺寸分布」维度（对齐电视供应链）
+					$arr['t2']='尺寸';
 				}elseif($sel_ds==10){
 					$arr['t1']='地区';
 				}elseif($sel_ds==12){
