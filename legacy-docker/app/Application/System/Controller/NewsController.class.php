@@ -29,6 +29,7 @@ class NewsController extends CheckController {
 		$this->sel_xs=I('sel_xs','',intval);
 		$this->sel_lb=I('sel_lb','',intval);
 		$this->sel_sjlb=I('sel_sjlb','',intval);
+		$this->sel_group=I('sel_group','',intval);
 		if($this->starttime){
 			$starttime=strtotime($this->starttime);
 			$sql .=" AND addtime >='$starttime'";
@@ -54,6 +55,14 @@ class NewsController extends CheckController {
 			}else{
 				$sql .=" AND sjtype = '".$this->sel_sjlb."'";
 			}
+		}
+		if($this->sel_group){
+			$sql .=" AND group_id = '".$this->sel_group."'";
+		}
+		$groups=M('activity_group')->order('displayorder DESC,id DESC')->select();
+		$group_names=array();
+		foreach($groups as $g){
+			$group_names[$g['id']]=$g['name'];
 		}
 		//分页
 		$count=M('news')->where($sql)->count();
@@ -83,9 +92,11 @@ class NewsController extends CheckController {
 		$datalist=M('news')->where($sql)->order('displayorder DESC,addtime DESC')->limit($page->firstRow.','.$page->listRows)->select();
 		foreach($datalist as $k=>$v){
 			$v['fbr']=M('user')->where("id='".$v['aid']."'")->getfield('name');
+			$v['group_name']=isset($group_names[$v['group_id']])?$group_names[$v['group_id']]:'';
 			$datalist[$k]=$v;
 		}
 		$this->assign('datalist',$datalist);
+		$this->assign('groups',$groups);
 		$this->assign('count',$count);
         $this->display();
     }
@@ -117,9 +128,10 @@ class NewsController extends CheckController {
 			}
 			$this->data=$data;
 		}
+		$this->groups=M('activity_group')->where("isrecommand=1")->order('displayorder DESC,id DESC')->select();
 		$this->display();
     }
-	public function doadd(){
+    public function doadd(){
 		$id=I('id','',intval);
 		if($id){
 			$data=M('news')->where("id='$id'")->find();
@@ -137,6 +149,7 @@ class NewsController extends CheckController {
 		$arr['content']=I('content','',dhtmlspecialchars);
 		$arr['url']=I('url','',dhtmlspecialchars);
 		$arr['read_page_limit']=in_array($arr['type'],array(3,4,5)) ? max(0,I('read_page_limit','',intval)) : 0;
+		$arr['group_id']=($arr['type']==1) ? I('group_id','',intval) : 0;
 		$arr['isrecommand']=I('isrecommand','',intval);
 		$arr['isbanner']=I('isbanner','',intval);
 		$arr['tag']=I('tag','',intval);

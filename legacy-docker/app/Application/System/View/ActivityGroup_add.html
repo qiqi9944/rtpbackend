@@ -1,0 +1,74 @@
+<include file="Public:header"/>
+<body>
+<div class="layui-card">
+    <form class="layui-form layui-form-pane">
+        <input type="hidden" name="id" value="{$data['id']}">
+        <div class="layui-form-item">
+            <label class="layui-form-label">
+                <span class='x-red'>*</span>分组名称
+            </label>
+            <div class="layui-input-block">
+                <input type="text" name="name" autocomplete="off" value="{$data['name']}" lay-verify="required" class="layui-input" placeholder="请输入分组名称，如：行业会议、秒懂趋势、权威发布">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">
+                排序
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" name="displayorder" autocomplete="off" value="{$data['displayorder']}" class="layui-input" placeholder="数值越大越靠前">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">
+                <span class='x-red'>*</span>是否显示
+            </label>
+            <div class="layui-input-block">
+                <input type="radio" name="isrecommand" value="1" title="是" <?php if($data['isrecommand']==1 || !$data['id']){ ?>checked="checked"<?php } ?>>
+                <input type="radio" name="isrecommand" value="0" title="否" <?php if($data['isrecommand']==0 && $data['id']){ ?>checked="checked"<?php } ?>>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <button class="layui-btn" type="button" lay-filter="add" lay-submit="">
+                保存
+            </button>
+        </div>
+    </form>
+</div>
+<script>
+    layui.use(['form', 'layer'],
+		function() {
+			$ = layui.jquery;
+			var form = layui.form,
+			layer = layui.layer;
+
+			//监听提交
+			form.on('submit(add)',function(data) {
+				var data = data.field;
+				$.ajax({
+					type:"post",
+					url:"{:U('ActivityGroup/doadd')}",
+					data:data,
+					dataType:"json",
+					success:function(data){
+						if(data.status==1){
+							layer.msg(data.info, {icon: 6,time:1000},function () {
+								var index = parent.layer.getFrameIndex(window.name);
+								parent.layer.close(index);
+								window.parent.location.reload();
+							});
+							return false;
+						}else{
+							layer.msg(data.info,{icon:5,time:1000});return false;
+						}
+					}
+
+				});
+				return false;
+			});
+
+		});
+</script>
+
+</body>
+</html>

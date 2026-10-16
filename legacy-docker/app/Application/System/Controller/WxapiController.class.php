@@ -877,6 +877,11 @@ class WxapiController extends Controller {
 		$sjtype=I('sjtype','',intval);//产品分类
 		$p=I('p','',intval);//分页
 		$page=$p?$p:1;
+		//活动（type=1）：按后台配置的分组返回全部，不分页
+		if($type==1){
+			$this->get_activity_grouped($sjtype);
+			return;
+		}
 		if($type==2){//热点第一页20条，其他10条
 		    if($page==1){
 				$limit=($page-1)*20;
@@ -916,6 +921,60 @@ class WxapiController extends Controller {
 		}
 		$return_data['status'] = 1;
 		$return_data['datalist'] = $datalist;
+		echo json_encode($return_data);
+	}
+	//观研-活动列表（按后台配置的分组返回，含Banner）
+	private function get_activity_grouped($sjtype=0){
+		$sql="isrecommand=1 AND type=1";
+		if($sjtype){
+			$sql .=" AND sjtype='$sjtype'";
+		}
+		$datalist=M('news')->where($sql)->field('id,name,url,addtime,tag,pic,bannerpic,isbanner,group_id')->order("displayorder DESC,addtime DESC,id DESC")->select();
+		foreach($datalist as $k=>$v){
+			$v['addtime']=date('Y-m-d',$v['addtime']);
+			if($v['pic']){
+				$v['pic']=C('SITEURL').$v['pic'];
+			}
+			if($v['bannerpic']){
+				$v['bannerpic']=C('SITEURL').$v['bannerpic'];
+			}
+			$datalist[$k]=$v;
+		}
+		//按分组归类（仅显示 isrecommand=1 的分组；未分组活动归入「其他」）
+		$group_list=M('activity_group')->where("isrecommand=1")->field('id,name')->order("displayorder DESC,id DESC")->select();
+		$group_ids=array();
+		foreach($group_list as $g){
+			$group_ids[$g['id']]=true;
+		}
+		$group_data=array();
+		foreach($group_list as $g){
+			$g['items']=array();
+			$group_data[$g['id']]=$g;
+		}
+		$ungrouped=array();
+		foreach($datalist as $v){
+			if($v['group_id'] && isset($group_ids[$v['group_id']])){
+				$group_data[$v['group_id']]['items'][]=$v;
+			}elseif(empty($v['group_id'])){
+				$ungrouped[]=$v;
+			}
+			//所属分组被隐藏的活动不展示
+		}
+		$groups=array();
+		foreach($group_list as $g){
+			if($group_data[$g['id']]['items']){
+				$groups[]=$group_data[$g['id']];
+			}
+		}
+		if($ungrouped){
+			$groups[]=array('id'=>0,'name'=>'其他','items'=>$ungrouped);
+		}
+		$return_data=array();
+		$return_data['status'] = 1;
+		$return_data['groups'] = $groups;
+		//兼容旧版：仍返回扁平列表
+		$return_data['datalist'] = $datalist;
+		$return_data['lastpage'] = 1;
 		echo json_encode($return_data);
 	}
 	//观研-小视频列表（按后台配置的分组返回，url + 封面 + 多行描述）

@@ -31,6 +31,20 @@
                             </select>
                         </div>
                     </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">
+                            活动分组
+                        </label>
+                        <div class="layui-input-block">
+                            <select name="group_id">
+                                <option value="0">未分组</option>
+                                <volist name="groups" id="g">
+                                <option value="{$g['id']}"<?php if($data['group_id']==$g['id']){ ?> selected="selected"<?php } ?>>{$g['name']}</option>
+                                </volist>
+                            </select>
+                            <div class="layui-form-mid layui-word-aux">仅「活动」分类生效；用于小程序活动页按分组展示。</div>
+                        </div>
+                    </div>
                     <div class="layui-form-item" id="read-page-limit">
                         <label class="layui-form-label">
                             可阅读页数

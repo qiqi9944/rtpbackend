@@ -47,6 +47,14 @@
                             </volist>
                             </select>
                         </div>
+                        <div class="layui-inline layui-show-xs-block" style="width:120px;">
+                            <select name="sel_group">
+                            <option value="0">活动分组</option>
+                            <volist name="groups" id="g">
+                            <option value="{$g['id']}"<?php if($sel_group==$g['id']){ ?> selected="selected"<?php } ?>>{$g['name']}</option>
+                            </volist>
+                            </select>
+                        </div>
                         <div class="layui-inline layui-show-xs-block">
                             <input type="text" name="keywords" value="{$keywords}"  placeholder="请输入新闻标题" autocomplete="off" class="layui-input">
                         </div>
@@ -73,6 +81,7 @@
                             <th width="150">小程序链接</th>
                             <th width="60">新闻分类</th>
                             <th width="80">产品分类</th>
+                            <th width="80">活动分组</th>
                             <th width="120">封面图</th>
                             <th width="120">活动长图</th>
                             <th width="60">发布人</th>
@@ -92,6 +101,7 @@
                             <td>/pages/yanbao/view?id={$v['id']}</td>
                             <td>{$arr_newstype[$v['type']]}</td>
                             <td><?php if($v['sjtype']){ ?>{$arr_sjtype[$v['sjtype']]}<?php }else{ ?>不限<?php } ?></td>
+                            <td><?php if($v['type']==1){ ?>{$v['group_name']?$v['group_name']:'未分组'}<?php } ?> </td>
                             <td><?php if($v['pic']){ ?><img src="{$v['pic']}" width="100"><?php } ?></td>
                             <td><?php if($v['bannerpic']){ ?><img src="{$v['bannerpic']}" width="100"><?php } ?></td>
                             <td>{$v['fbr']}</td>
@@ -117,7 +127,7 @@
                         </tr>
                         </volist>
                         <tr>
-                            <td colspan="13">
+                            <td colspan="14">
                             <button class="layui-btn layui-btn-danger" lay-filter="save" lay-submit=""><i class="layui-icon">&#xe642;</i>提交</button>
                             </td>
                         </tr>
