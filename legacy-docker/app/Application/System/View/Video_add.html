@@ -68,6 +68,19 @@
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">
+                所属分组
+            </label>
+            <div class="layui-input-block">
+                <select name="group_id">
+                    <option value="0">未分组</option>
+                    <volist name="groups" id="g">
+                    <option value="{$g['id']}" <?php if($data['group_id']==$g['id']){ ?>selected="selected"<?php } ?>>{$g['name']}</option>
+                    </volist>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">
                 推荐度
             </label>
             <div class="layui-input-inline">

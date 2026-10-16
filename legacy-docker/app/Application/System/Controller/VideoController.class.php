@@ -13,6 +13,7 @@ class VideoController extends CheckController {
 		$sql="1";
 		$this->keywords=I('keywords','',dhtmlspecialchars);
 		$this->sel_xs=I('sel_xs','',intval);
+		$this->sel_group=I('sel_group','',intval);
 		if($this->keywords){
 			$sql .=" AND (name LIKE '%".$this->keywords."%' OR description LIKE '%".$this->keywords."%')";
 		}
@@ -20,6 +21,14 @@ class VideoController extends CheckController {
 			$sql .=" AND isrecommand=1";
 		}elseif($this->sel_xs==2){
 			$sql .=" AND isrecommand=0";
+		}
+		if($this->sel_group){
+			$sql .=" AND group_id='".$this->sel_group."'";
+		}
+		$groups=M('video_group')->order('displayorder DESC,id DESC')->select();
+		$group_names=array();
+		foreach($groups as $g){
+			$group_names[$g['id']]=$g['name'];
 		}
 		$count=M('video')->where($sql)->count();
 		$page=new \Think\Page($count,10);
@@ -30,14 +39,19 @@ class VideoController extends CheckController {
 		if(!empty($this->sel_xs)){
 			$Page->parameter['sel_xs']=$this->sel_xs;
 		}
+		if(!empty($this->sel_group)){
+			$Page->parameter['sel_group']=$this->sel_group;
+		}
 		$show=$page->show();
 		$this->page=$show;
 		$datalist=M('video')->where($sql)->order('displayorder DESC,id DESC')->limit($page->firstRow.','.$page->listRows)->select();
 		foreach($datalist as $k=>$v){
 			$v['fbr']=M('user')->where("id='".$v['aid']."'")->getfield('name');
+			$v['group_name']=isset($group_names[$v['group_id']])?$group_names[$v['group_id']]:'未分组';
 			$datalist[$k]=$v;
 		}
 		$this->assign('datalist',$datalist);
+		$this->assign('groups',$groups);
 		$this->assign('count',$count);
 		$this->display();
 	}
@@ -65,6 +79,7 @@ class VideoController extends CheckController {
 			$data['finder_user_name']=C('VIDEO_FINDER');
 		}
 		$this->data=$data;
+		$this->groups=M('video_group')->where("isrecommand=1")->order('displayorder DESC,id DESC')->select();
 		$this->display();
 	}
 	public function doadd(){
@@ -86,6 +101,7 @@ class VideoController extends CheckController {
 		$arr['feed_token']=I('feed_token','',dhtmlspecialchars);
 		$arr['pic']=I('pic','',dhtmlspecialchars);
 		$arr['description']=I('description','',dhtmlspecialchars);
+		$arr['group_id']=I('group_id','',intval);
 		$arr['isrecommand']=I('isrecommand','',intval);
 		$arr['displayorder']=I('displayorder','',intval);
 		if(!$arr['name']){

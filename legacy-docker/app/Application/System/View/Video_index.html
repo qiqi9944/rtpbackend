@@ -24,6 +24,14 @@
                             <option value="2"<?php if($sel_xs==2){ ?> selected="selected"<?php } ?>>否</option>
                             </select>
                         </div>
+                        <div class="layui-inline layui-show-xs-block" style="width:140px;">
+                            <select name="sel_group">
+                            <option value="0">全部分组</option>
+                            <volist name="groups" id="g">
+                            <option value="{$g['id']}" <?php if($sel_group==$g['id']){ ?>selected="selected"<?php } ?>>{$g['name']}</option>
+                            </volist>
+                            </select>
+                        </div>
                         <div class="layui-inline layui-show-xs-block">
                             <input type="text" name="keywords" value="{$keywords}"  placeholder="请输入视频标题/描述" autocomplete="off" class="layui-input">
                         </div>
@@ -45,6 +53,7 @@
                         <tr>
                             <th width="80">推荐度</th>
                             <th width="80">视频标题</th>
+                            <th width="100">所属分组</th>
                             <th width="120">封面图</th>
                             <th>视频描述</th>
                             <th width="220">视频来源</th>
@@ -60,6 +69,7 @@
                         <tr>
                             <td><input type="text" name="displayorder[{$v['id']}]" value="{$v['displayorder']}" style=" width:60px; height:30px;" ></td>
                             <td>{$v['name']}</td>
+                            <td>{$v['group_name']}</td>
                             <td><?php if($v['pic']){ ?><img src="{$v['pic']}" width="100"><?php } ?></td>
                             <td>{$v['description']}</td>
                             <td style="word-break:break-all;">
@@ -88,7 +98,7 @@
                         </tr>
                         </volist>
                         <tr>
-                            <td colspan="10">
+                            <td colspan="11">
                             <button class="layui-btn layui-btn-danger" lay-filter="save" lay-submit=""><i class="layui-icon">&#xe642;</i>提交排序</button>
                             </td>
                         </tr>

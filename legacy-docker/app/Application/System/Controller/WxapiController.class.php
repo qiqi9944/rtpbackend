@@ -918,14 +918,10 @@ class WxapiController extends Controller {
 		$return_data['datalist'] = $datalist;
 		echo json_encode($return_data);
 	}
-	//观研-小视频列表（url + 封面 + 多行描述）
+	//观研-小视频列表（按后台配置的分组返回，url + 封面 + 多行描述）
 	public function getvideo(){
-		$p=I('p','',intval);//分页
-		$page=$p?$p:1;
-		$lm=12;
-		$limit=($page-1)*$lm;
-		$sql="isrecommand=1";
-		$datalist = M('video')->where($sql)->field('id,name,url,finder_user_name,feed_id,feed_token,pic,description,addtime')->order("displayorder DESC,id DESC")->limit($limit,$lm)->select();
+		//所有显示的视频
+		$datalist = M('video')->where("isrecommand=1")->field('id,name,url,finder_user_name,feed_id,feed_token,pic,description,group_id,addtime')->order("displayorder DESC,id DESC")->select();
 		foreach($datalist as $k=>$v){
 			$v['addtime']=date('Y-m-d',$v['addtime']);
 			if(!$v['finder_user_name'] && ($v['feed_id'] || $v['feed_token'])){
@@ -936,15 +932,39 @@ class WxapiController extends Controller {
 			}
 			$datalist[$k]=$v;
 		}
-		$return_data=array();
-		//是否为最后一页
-		$count=M('video')->where($sql)->count();
-		if($count <= ($limit+$lm)){
-			$return_data['lastpage']=1;
-		}else{
-			$return_data['lastpage']=0;
+		//按分组归类（仅显示 isrecommand=1 的分组；未分组视频归入「其他」）
+		$group_list=M('video_group')->where("isrecommand=1")->field('id,name')->order("displayorder DESC,id DESC")->select();
+		$group_ids=array();
+		foreach($group_list as $g){
+			$group_ids[$g['id']]=true;
 		}
+		$group_data=array();
+		foreach($group_list as $g){
+			$g['videos']=array();
+			$group_data[$g['id']]=$g;
+		}
+		$ungrouped=array();
+		foreach($datalist as $v){
+			if($v['group_id'] && isset($group_ids[$v['group_id']])){
+				$group_data[$v['group_id']]['videos'][]=$v;
+			}elseif(empty($v['group_id'])){
+				$ungrouped[]=$v;
+			}
+			//所属分组被隐藏的视频不展示
+		}
+		$groups=array();
+		foreach($group_list as $g){
+			if($group_data[$g['id']]['videos']){
+				$groups[]=$group_data[$g['id']];
+			}
+		}
+		if($ungrouped){
+			$groups[]=array('id'=>0,'name'=>'其他','videos'=>$ungrouped);
+		}
+		$return_data=array();
 		$return_data['status'] = 1;
+		$return_data['groups'] = $groups;
+		//兼容旧版：仍返回扁平列表
 		$return_data['datalist'] = $datalist;
 		echo json_encode($return_data);
 	}

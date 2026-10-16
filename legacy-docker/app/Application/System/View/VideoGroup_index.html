@@ -1,0 +1,127 @@
+<include file="Public:header"/>
+<body>
+<div class="x-nav">
+          <span class="layui-breadcrumb">
+            <a href="">首页</a>
+            <a><cite>视频分组</cite></a>
+          </span>
+    <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onClick="location.reload()" title="刷新">
+        <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i></a>
+</div>
+<style>
+.layui-table td, .layui-table th { padding:9px 8px;}
+</style>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <button class="layui-btn" onClick="xadmin.open('添加分组','{:U('VideoGroup/add')}','800')"><i class="layui-icon">&#xe654;</i>添加</button>
+                    <span style="margin-left:10px;color:#888;">分组用于小程序「小视频」页按分组展示，排序值越大越靠前</span>
+                </div>
+                <form class="layui-form">
+                <div class="layui-card-body layui-table-body layui-table-main">
+                    <table class="layui-table layui-form">
+                        <thead>
+                        <tr>
+                            <th width="100">排序</th>
+                            <th width="200">分组名称</th>
+                            <th width="100">视频数</th>
+                            <th width="90">是否显示</th>
+                            <th width="120">录入时间</th>
+                            <th width="100">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <volist name="datalist" id="v">
+                        <tr>
+                            <td><input type="text" name="displayorder[{$v['id']}]" value="{$v['displayorder']}" style=" width:60px; height:30px;" ></td>
+                            <td>{$v['name']}</td>
+                            <td>{$v['videocount']}</td>
+                            <td class="td-status">
+                            <?php if($v['isrecommand']==1){ ?><span class="layui-btn layui-btn-normal " > 是 </span><?php } ?>
+                            <?php if($v['isrecommand']==0){ ?><span class="layui-btn layui-btn-danger " > 否 </span><?php } ?>
+                            </td>
+                            <td><?php echo $v['addtime']?date('Y-m-d',$v['addtime']):''; ?></td>
+                            <td class="td-manage">
+                                <a title="编辑" href="javascript:;" onClick="xadmin.open('编辑','{:U('VideoGroup/add',array('id'=>$v['id']))}','800')"
+                                   class="ml-5" style="text-decoration:none">
+                                    <i class="layui-icon">&#xe642;</i>
+                                </a>
+                                <a title="删除" href="javascript:;" onClick="group_del(this,'{$v['id']}')"
+                                   style="text-decoration:none">
+                                    <i class="layui-icon">&#xe640;</i>
+                                </a></td>
+                        </tr>
+                        </volist>
+                        <tr>
+                            <td colspan="6">
+                            <button class="layui-btn layui-btn-danger" lay-filter="save" lay-submit=""><i class="layui-icon">&#xe642;</i>提交排序</button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    layui.use(['layer','form','element'], function(){
+        var layer = layui.layer;
+        var form = layui.form;
+        var element = layui.element;
+		element.render();
+
+		//监听提交
+		form.on('submit(save)',function(data) {
+			var data = data.field;
+			$.ajax({
+				type:"post",
+				url:"{:U('VideoGroup/dosave')}",
+				data:data,
+				dataType:"json",
+				success:function(data){
+					if(data.status==1){
+						layer.msg(data.info, {icon: 6,time:1000},function () {
+							window.parent.location.reload();
+						});
+						return false;
+					}else{
+						layer.msg(data.info,{icon:5,time:1000});return false;
+					}
+				}
+
+			});
+			return false;
+		});
+
+
+    });
+
+    /*分组-删除*/
+    function group_del(obj,id){
+        layer.confirm('删除后该分组下的视频将归入未分组，确认要删除吗？',function(index){
+			$.ajax({
+				type:'POST',
+				url:"{:U('VideoGroup/del')}",
+				data:{
+					id: id
+				},
+				success:function (data) {
+					if(data.status ==1){
+						layer.msg(data.info, {icon: 6,time:1000},function () {
+							window.parent.location.reload();
+						});
+					}else{
+						layer.msg(data.info,{icon: 5,time:1000});
+					}
+				}
+			});
+			return false;
+        });
+    }
+
+</script>
+</html>
